@@ -35,4 +35,15 @@ class SupabaseService {
       rethrow;
     }
   }
+
+  Future<void> updateFoto(String table, String idField, String idValue, String foto) async {
+    try {
+      await _supabase
+          .from(table)
+          .update({'foto': foto})
+          .eq(idField, idValue);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

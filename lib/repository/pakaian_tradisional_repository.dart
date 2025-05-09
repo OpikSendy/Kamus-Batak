@@ -17,4 +17,8 @@ class PakaianTradisionalRepository {
   Future<void> deletePakaian(int pakaianId) async {
     await _supabaseService.deleteData('pakaian_tradisional', 'id', pakaianId as String);
   }
+
+  Future<void> updateFoto(int pakaianId, String foto) async {
+    await _supabaseService.updateFoto('pakaian_tradisional', 'id', pakaianId as String, foto);
+  }
 }

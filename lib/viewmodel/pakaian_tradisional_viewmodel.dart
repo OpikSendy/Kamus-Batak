@@ -31,4 +31,9 @@ class PakaianTradisionalViewModel extends ChangeNotifier {
     await _repository.deletePakaian(pakaianId);
     await fetchPakaianList(sukuId);
   }
+
+  Future<void> updateFoto(int pakaianId, String foto, int sukuId) async {
+    await _repository.updateFoto(pakaianId, foto);
+    await fetchPakaianList(sukuId);
+  }
 }

@@ -97,7 +97,7 @@ class _SenjataTradisionalDetailScreenState
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.brown[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -105,7 +105,7 @@ class _SenjataTradisionalDetailScreenState
         title: Text(
           "Senjata Tradisional",
           style: TextStyle(
-            color: Colors.brown[700],
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -247,7 +247,7 @@ class _SenjataTradisionalDetailScreenState
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.brown[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -255,7 +255,7 @@ class _SenjataTradisionalDetailScreenState
         title: Text(
           "Senjata Tradisional",
           style: TextStyle(
-            color: Colors.brown[700],
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -281,24 +281,24 @@ class _SenjataTradisionalDetailScreenState
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: () {
-              _showInfoDialog(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.share),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Berbagi informasi senjata tradisional"),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.brown[700],
-                ),
-              );
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.info_outline),
+          //   onPressed: () {
+          //     _showInfoDialog(context);
+          //   },
+          // ),
+          // IconButton(
+          //   icon: Icon(Icons.share),
+          //   onPressed: () {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: Text("Berbagi informasi senjata tradisional"),
+          //         behavior: SnackBarBehavior.floating,
+          //         backgroundColor: Colors.brown[700],
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
       body: Column(
@@ -569,7 +569,7 @@ class _SenjataTradisionalDetailScreenState
                             ),
                           ),
                         ),
-                        _buildFavoriteButton(),
+                        // _buildFavoriteButton(),
                       ],
                     ),
 
@@ -629,14 +629,11 @@ class _SenjataTradisionalDetailScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildFunctionItem("Pertahanan",
-                              "Digunakan untuk melindungi diri dan keluarga"),
+                          _buildFunctionItem("Pertahanan", viewModel.senjataList[_selectedSenjataIndex].pertahanan),
                           SizedBox(height: 12),
-                          _buildFunctionItem("Perburuan",
-                              "Alat bantu berburu untuk kebutuhan sehari-hari"),
+                          _buildFunctionItem("Perburuan", viewModel.senjataList[_selectedSenjataIndex].perburuan),
                           SizedBox(height: 12),
-                          _buildFunctionItem("Seremonial",
-                              "Digunakan dalam upacara adat dan ritual tertentu"),
+                          _buildFunctionItem("Seremonial", viewModel.senjataList[_selectedSenjataIndex].seremonial),
                         ],
                       ),
                     ),
@@ -785,36 +782,36 @@ class _SenjataTradisionalDetailScreenState
     );
   }
 
-  Widget _buildFavoriteButton() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          // Toggle favorite status
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Ditambahkan ke favorit"),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.brown[700],
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.brown[50],
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.brown[200]!),
-        ),
-        child: Icon(
-          Icons.favorite_border,
-          color: Colors.brown[700],
-          size: 20,
-        ),
-      ),
-    );
-  }
+  // Widget _buildFavoriteButton() {
+  //   return InkWell(
+  //     onTap: () {
+  //       setState(() {
+  //         // Toggle favorite status
+  //       });
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text("Ditambahkan ke favorit"),
+  //           behavior: SnackBarBehavior.floating,
+  //           backgroundColor: Colors.brown[700],
+  //         ),
+  //       );
+  //     },
+  //     borderRadius: BorderRadius.circular(20),
+  //     child: Container(
+  //       padding: EdgeInsets.all(8),
+  //       decoration: BoxDecoration(
+  //         color: Colors.brown[50],
+  //         shape: BoxShape.circle,
+  //         border: Border.all(color: Colors.brown[200]!),
+  //       ),
+  //       child: Icon(
+  //         Icons.favorite_border,
+  //         color: Colors.brown[700],
+  //         size: 20,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _showFullScreenImage(BuildContext context, SenjataTradisional senjata) {
     Navigator.of(context).push(
@@ -1017,18 +1014,10 @@ class _SenjataTradisionalDetailScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoSection("Sejarah",
-                          "Senjata ini memiliki sejarah panjang dalam masyarakat sebagai simbol kekuatan dan status sosial. Awalnya digunakan untuk berburu dan perang, namun seiring berkembangnya zaman, fungsinya lebih banyak untuk keperluan adat dan seremonial."),
-
-                      _buildInfoSection("Material & Pembuatan",
-                          "Proses pembuatan senjata ini melibatkan keahlian khusus dan sering disertai ritual tertentu. Material yang digunakan biasanya besi pilihan, kayu, dan terkadang dihiasi dengan ukiran atau material berharga lainnya."),
-
-                      _buildInfoSection("Ornamen & Simbol",
-                          "Ornamen dan simbol pada senjata ini memiliki makna filosofis dan spiritual. Setiap ukiran dan bentuk mewakili nilai-nilai budaya dan kepercayaan masyarakat pembuatnya."),
-
-                      _buildInfoSection("Penggunaan Dalam Masyarakat",
-                          "Senjata ini digunakan dalam berbagai aspek kehidupan masyarakat. Selain fungsi praktisnya, senjata ini juga memiliki nilai sosial dan budaya yang penting dalam struktur masyarakat."),
-
+                      _buildInfoSection("Sejarah", senjata.sejarah),
+                      _buildInfoSection("Material & Pembuatan", senjata.material),
+                      _buildInfoSection("Ornamen & Simbol", senjata.simbol),
+                      _buildInfoSection("Penggunaan Dalam Masyarakat", senjata.penggunaan),
                       // Additional information or trivia
                       Container(
                         margin: EdgeInsets.symmetric(vertical: 20),

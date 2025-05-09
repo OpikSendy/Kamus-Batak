@@ -11,6 +11,9 @@ class SenjataTradisional {
   final String material;
   final String simbol;
   final String penggunaan;
+  final String pertahanan;
+  final String perburuan;
+  final String seremonial;
 
   SenjataTradisional({
     required this.id,
@@ -25,6 +28,9 @@ class SenjataTradisional {
     required this.material,
     required this.simbol,
     required this.penggunaan,
+    required this.pertahanan,
+    required this.perburuan,
+    required this.seremonial,
   });
 
   factory SenjataTradisional.fromJson(Map<String, dynamic> json) =>
@@ -41,6 +47,9 @@ class SenjataTradisional {
         material: json['material'],
         simbol: json['simbol'],
         penggunaan: json['penggunaan'],
+        pertahanan: json['pertahanan'],
+        perburuan: json['perburuan'],
+        seremonial: json['seremonial'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -56,5 +65,8 @@ class SenjataTradisional {
     'material': material,
     'simbol': simbol,
     'penggunaan': penggunaan,
+    'pertahanan': pertahanan,
+    'perburuan': perburuan,
+    'seremonial': seremonial,
   };
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kbb/models/kuliner_tradisional.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/kuliner_tradisional_viewmodel.dart';
 
@@ -11,7 +12,7 @@ class KulinerTradisionalDetailScreen extends StatefulWidget {
 
 class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
   final String _searchQuery = '';
-  String _selectedFilter = 'Semua';
+  final String _selectedFilter = 'Semua';
 
   @override
   void initState() {
@@ -92,7 +93,7 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     ),
                     Positioned(
                       bottom: 138,
-                      left: 50,
+                      left: 250,
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -132,18 +133,23 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                 //     ),
                 //   ),
                 // ),
-                IconButton(
-                  icon: Icon(Icons.filter_list, color: Colors.white),
-                  onPressed: () {
-                    _showFilterDialog(context);
-                  },
-                ),
+                // IconButton(
+                //   icon: Icon(Icons.filter_list, color: Colors.white),
+                //   onPressed: () {
+                //     _showFilterDialog(context);
+                //   },
+                // ),
               ],
             ),
           ];
         },
         body: Consumer<KulinerTradisionalViewModel>(
           builder: (context, viewModel, child) {
+            final filteredList = viewModel.kulinerList.where((kuliner) {
+              final matchesSearch = kuliner.nama.toLowerCase().contains(_searchQuery.toLowerCase());
+              final matchesFilter = _selectedFilter == 'Semua' || kuliner.jenis.toLowerCase() == _selectedFilter.toLowerCase();
+              return matchesSearch && matchesFilter;
+            }).toList();
             if (viewModel.isLoading) {
               return Center(
                 child: Column(
@@ -193,11 +199,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                 ),
               );
             } else {
-              final filteredList = viewModel.kulinerList.where((kuliner) {
-                final matchesSearch = kuliner.nama.toLowerCase().contains(_searchQuery.toLowerCase());
-                final matchesFilter = _selectedFilter == 'Semua' || kuliner.jenis.toLowerCase() == _selectedFilter.toLowerCase();
-                return matchesSearch && matchesFilter;
-              }).toList();
               return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
@@ -437,20 +438,18 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                 SizedBox(height: 16.0),
                 Row(
                   children: [
-                    _buildInfoChip(Icons.star, '4.8', Colors.amber),
+                    _buildInfoChip(Icons.star, kuliner.rating, Colors.amber),
                     SizedBox(width: 12),
-                    _buildInfoChip(Icons.access_time, '30 menit', Colors.blue[700]!),
-                    SizedBox(width: 12),
-                    _buildInfoChip(Icons.local_fire_department, 'Populer', Colors.red[700]!),
+                    _buildInfoChip(Icons.access_time, kuliner.waktu, Colors.blue[700]!),
                   ],
                 ),
                 SizedBox(height: 16.0),
                 OutlinedButton(
                   onPressed: () {
-                    // Implementasi tombol lihat resep
+                    // _showResep(context, kuliner);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Fitur ini akan segera hadir!'),
+                        content: Text('Fitur resep akan segera hadir!'),
                         backgroundColor: Colors.orange[800],
                       ),
                     );
@@ -519,61 +518,136 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
     );
   }
 
-  void _showFilterDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Filter Jenis Kuliner',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                children: ['Semua', 'makanan', 'minuman'].map((filter) {
-                  return ChoiceChip(
-                    label: Text(filter.toUpperCase()),
-                    selected: _selectedFilter == filter,
-                    selectedColor: Colors.orange[800],
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedFilter = filter;
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // void _showFilterDialog(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (context) {
+  //       return Padding(
+  //         padding: EdgeInsets.all(20),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Text(
+  //                   'Filter Jenis Kuliner',
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.grey[800],
+  //                   ),
+  //                 ),
+  //                 IconButton(
+  //                   icon: Icon(Icons.close),
+  //                   onPressed: () {
+  //                     Navigator.pop(context);
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             SizedBox(height: 12),
+  //             Wrap(
+  //               spacing: 8,
+  //               children: ['Semua', 'makanan', 'minuman'].map((filter) {
+  //                 return ChoiceChip(
+  //                   label: Text(filter.toUpperCase()),
+  //                   selected: _selectedFilter == filter,
+  //                   selectedColor: Colors.orange[800],
+  //                   onSelected: (selected) {
+  //                     setState(() {
+  //                       _selectedFilter = filter;
+  //                     });
+  //                     Navigator.pop(context);
+  //                   },
+  //                 );
+  //               }).toList(),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  // void _showResep(BuildContext context, KulinerTradisional kuliner) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //       ),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Container(
+  //             padding: EdgeInsets.all(16),
+  //             decoration: BoxDecoration(
+  //               color: Colors.red[700],
+  //               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //             ),
+  //             child: Row(
+  //               children: [
+  //                 Icon(
+  //                   Icons.info_outline,
+  //                   color: Colors.white,
+  //                   size: 24,
+  //                 ),
+  //                 SizedBox(width: 8),
+  //                 Text(
+  //                   "Resep ${kuliner.nama}",
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.white,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           Padding(
+  //             padding: EdgeInsets.all(16),
+  //             child: Column(
+  //               children: [
+  //                 Text(
+  //                   kuliner.resep,
+  //                   style: TextStyle(
+  //                     fontSize: 14,
+  //                     height: 1.5,
+  //                     color: Colors.grey[800],
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: 16),
+  //                 ElevatedButton(
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.red[700],
+  //                     minimumSize: Size(double.infinity, 45),
+  //                   ),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                   child: Text(
+  //                     "Tutup",
+  //                     style: TextStyle(
+  //                       color: Colors.white,
+  //                       fontWeight: FontWeight.bold,
+  //                       fontSize: 16,
+  //                     )
+  //                     ,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Widget _buildFilterOption(String label, bool isSelected) {
   //   return Chip(

@@ -245,7 +245,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.brown[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -253,7 +253,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
         title: Text(
           "Rumah Adat",
           style: TextStyle(
-            color: Colors.brown[700],
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -279,25 +279,25 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: () {
-              _showInfoDialog(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.share),
-            onPressed: () {
-              // Implement share functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Berbagi informasi rumah adat"),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.brown[700],
-                ),
-              );
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.info_outline),
+          //   onPressed: () {
+          //     _showInfoDialog(context);
+          //   },
+          // ),
+          // IconButton(
+          //   icon: Icon(Icons.share),
+          //   onPressed: () {
+          //     // Implement share functionality
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: Text("Berbagi informasi rumah adat"),
+          //         behavior: SnackBarBehavior.floating,
+          //         backgroundColor: Colors.brown[700],
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
       body: Column(
@@ -843,67 +843,67 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
     );
   }
 
-  void _showInfoDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(
-              Icons.info_outline,
-              color: Colors.brown[700],
-            ),
-            SizedBox(width: 8),
-            Text(
-              "Tentang Rumah Adat",
-              style: TextStyle(
-                color: Colors.brown[800],
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Rumah adat adalah bangunan tradisional yang memiliki ciri khas setiap daerah di Indonesia. Rumah adat mencerminkan kultur, nilai, dan filosofi masyarakat setempat.",
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              "Anda dapat melihat detail setiap rumah adat dengan menggeser layar ke kiri atau kanan, dan memperbesar gambar dengan menyentuhnya.",
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              "Tutup",
-              style: TextStyle(
-                color: Colors.brown[700],
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
+  // void _showInfoDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Row(
+  //         children: [
+  //           Icon(
+  //             Icons.info_outline,
+  //             color: Colors.brown[700],
+  //           ),
+  //           SizedBox(width: 8),
+  //           Text(
+  //             "Tentang Rumah Adat",
+  //             style: TextStyle(
+  //               color: Colors.brown[800],
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text(
+  //             "Rumah adat adalah bangunan tradisional yang memiliki ciri khas setiap daerah di Indonesia. Rumah adat mencerminkan kultur, nilai, dan filosofi masyarakat setempat.",
+  //             style: TextStyle(
+  //               fontSize: 14,
+  //               height: 1.5,
+  //             ),
+  //           ),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             "Anda dapat melihat detail setiap rumah adat dengan menggeser layar ke kiri atau kanan, dan memperbesar gambar dengan menyentuhnya.",
+  //             style: TextStyle(
+  //               fontSize: 14,
+  //               height: 1.5,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.of(context).pop();
+  //           },
+  //           child: Text(
+  //             "Tutup",
+  //             style: TextStyle(
+  //               color: Colors.brown[700],
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _showDetailedInfo(BuildContext context, RumahAdat rumahAdat) {
     showModalBottomSheet(
@@ -1074,17 +1074,25 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 // Implement 3D view or virtual tour
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "Fitur tur virtual akan segera hadir"),
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: Colors.brown[700],
-                                  ),
-                                );
+                                // ScaffoldMessenger.of(context).showSnackBar(
+                                //   SnackBar(
+                                //     content: Text(
+                                //         "Fitur tur virtual akan segera hadir"),
+                                //     backgroundColor: Colors.brown[700],
+                                //   ),
+                                // );
                               },
-                              icon: Icon(Icons.view_in_ar),
-                              label: Text("Lihat 3D"),
+                              icon: Icon(
+                                Icons.view_in_ar,
+                                color: Colors.white
+                              ),
+                              label: Text(
+                                  "Lihat 3D",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  )
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.brown[700],
                                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -1099,16 +1107,25 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 // Implement location view on map
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Melihat lokasi pada peta"),
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: Colors.brown[700],
-                                  ),
-                                );
+                                // ScaffoldMessenger.of(context).showSnackBar(
+                                //   SnackBar(
+                                //     content: Text("Melihat lokasi pada peta"),
+                                //     behavior: SnackBarBehavior.floating,
+                                //     backgroundColor: Colors.brown[700],
+                                //   ),
+                                // );
                               },
-                              icon: Icon(Icons.location_on_outlined),
-                              label: Text("Lokasi"),
+                              icon: Icon(
+                                Icons.location_on_outlined,
+                                color: Colors.brown[800]
+                              ),
+                              label: Text(
+                                "Lokasi",
+                                style: TextStyle(
+                                  color: Colors.brown[800],
+                                  fontSize: 16,
+                                )
+                              ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.brown[800],
                                 side: BorderSide(color: Colors.brown[300]!),

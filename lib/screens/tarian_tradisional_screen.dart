@@ -584,6 +584,12 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -612,6 +618,8 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                     tarian.nama,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white,
                       shadows: [
                         Shadow(
                           offset: Offset(1, 1),
@@ -625,28 +633,28 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                 ),
                 backgroundColor: Colors.teal[700],
                 actions: [
-                  IconButton(
-                    icon: Icon(Icons.share),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Bagikan tarian ${tarian.nama}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.favorite_border),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Ditambahkan ke favorit'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                  ),
+                  // IconButton(
+                  //   icon: Icon(Icons.share),
+                  //   onPressed: () {
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(
+                  //         content: Text('Bagikan tarian ${tarian.nama}'),
+                  //         behavior: SnackBarBehavior.floating,
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
+                  // IconButton(
+                  //   icon: Icon(Icons.favorite_border),
+                  //   onPressed: () {
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(
+                  //         content: Text('Ditambahkan ke favorit'),
+                  //         behavior: SnackBarBehavior.floating,
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
                 ],
               ),
 
@@ -691,9 +699,9 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildInfoChip(Icons.groups, "Kelompok", "4-8 orang"),
-                          _buildInfoChip(Icons.timer, "Durasi", "5-7 menit"),
-                          _buildInfoChip(Icons.event, "Kategori", "Seremonial"),
+                          _buildInfoChip(Icons.groups, tarian.kategori),
+                          _buildInfoChip(Icons.timer, tarian.durasi),
+                          _buildInfoChip(Icons.event, tarian.event),
                         ],
                       ),
 
@@ -707,17 +715,17 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
                       _buildSection(
                         "Sejarah",
-                        "Tarian ini memiliki sejarah panjang yang berasal dari ritual tradisional masyarakat setempat. Awalnya, tarian ini dipentaskan sebagai bagian dari upacara adat dan ritual keagamaan untuk meminta berkah dan perlindungan.",
+                        tarian.sejarah
                       ),
 
                       _buildSection(
                         "Gerakan dan Makna",
-                        "Setiap gerakan dalam tarian ini memiliki makna filosofis yang mendalam, mencerminkan keharmonisan dengan alam dan nilai-nilai kehidupan. Gerakan yang lemah gemulai menggambarkan keanggunan dan kehalusan budi pekerti masyarakat.",
+                        tarian.gerakan
                       ),
 
                       _buildSection(
                         "Kostum dan Perlengkapan",
-                        "Penari mengenakan pakaian tradisional khas dengan warna-warni cerah yang melambangkan keberagaman alam. Aksesoris seperti mahkota, selendang, dan perhiasan menjadi bagian penting yang menambah keindahan visual tarian ini.",
+                        tarian.kostum
                       ),
 
                       SizedBox(height: 20),
@@ -786,75 +794,75 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                       SizedBox(height: 30),
 
                       // Related tarian
-                      Text(
-                        "Tarian Terkait Lainnya",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal[800],
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Container(
-                        height: 180,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 3,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              width: 160,
-                              margin: EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 5,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      tarian.foto, // Placeholder, would use other images in real app
-                                      height: 110,
-                                      width: 160,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Tarian ${index + 1}",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          "Tarian Tradisional",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      // Text(
+                      //   "Tarian Terkait Lainnya",
+                      //   style: TextStyle(
+                      //     fontSize: 18,
+                      //     fontWeight: FontWeight.bold,
+                      //     color: Colors.teal[800],
+                      //   ),
+                      // ),
+                      // SizedBox(height: 16),
+                      // Container(
+                      //   height: 180,
+                      //   child: ListView.builder(
+                      //     scrollDirection: Axis.horizontal,
+                      //     itemCount: 3,
+                      //     itemBuilder: (context, index) {
+                      //       return Container(
+                      //         width: 160,
+                      //         margin: EdgeInsets.only(right: 12),
+                      //         decoration: BoxDecoration(
+                      //           borderRadius: BorderRadius.circular(12),
+                      //           boxShadow: [
+                      //             BoxShadow(
+                      //               color: Colors.black.withOpacity(0.1),
+                      //               blurRadius: 5,
+                      //               offset: Offset(0, 2),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //         child: Column(
+                      //           crossAxisAlignment: CrossAxisAlignment.start,
+                      //           children: [
+                      //             ClipRRect(
+                      //               borderRadius: BorderRadius.circular(12),
+                      //               child: Image.network(
+                      //                 tarian.foto, // Placeholder, would use other images in real app
+                      //                 height: 110,
+                      //                 width: 160,
+                      //                 fit: BoxFit.cover,
+                      //               ),
+                      //             ),
+                      //             Padding(
+                      //               padding: EdgeInsets.all(8),
+                      //               child: Column(
+                      //                 crossAxisAlignment: CrossAxisAlignment.start,
+                      //                 children: [
+                      //                   Text(
+                      //                     "Tarian ${index + 1}",
+                      //                     style: TextStyle(
+                      //                       fontWeight: FontWeight.bold,
+                      //                       fontSize: 14,
+                      //                     ),
+                      //                   ),
+                      //                   SizedBox(height: 4),
+                      //                   Text(
+                      //                     "Tarian Tradisional",
+                      //                     style: TextStyle(
+                      //                       fontSize: 12,
+                      //                       color: Colors.grey[600],
+                      //                     ),
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       );
+                      //     },
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -922,7 +930,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
 
 
-  Widget _buildInfoChip(IconData icon, String label, String value) {
+  Widget _buildInfoChip(IconData icon, String label) {
     return Container(
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -950,15 +958,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.teal[900],
             ),
           ),
         ],
@@ -1047,7 +1046,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text("Tutup"),
+                    child: Text(
+                      "Tutup",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1058,147 +1064,147 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  void _showFilterOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Filter Tarian Tradisional",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal[800],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Text(
-                "Kategori Tarian",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.teal[700],
-                ),
-              ),
-              SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFilterChip("Semua"),
-                  _buildFilterChip("Seremonial"),
-                  _buildFilterChip("Penyambutan"),
-                  _buildFilterChip("Ritual"),
-                  _buildFilterChip("Pertunjukan"),
-                ],
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Jumlah Penari",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.teal[700],
-                ),
-              ),
-              SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFilterChip("Tunggal"),
-                  _buildFilterChip("Berpasangan"),
-                  _buildFilterChip("Kelompok Kecil"),
-                  _buildFilterChip("Kelompok Besar"),
-                ],
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.teal[700]!),
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        "Reset",
-                        style: TextStyle(
-                          color: Colors.teal[700],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal[700],
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Filter diterapkan'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        "Terapkan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // void _showFilterOptions(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (context) {
+  //       return Container(
+  //         padding: EdgeInsets.all(24),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Text(
+  //                   "Filter Tarian Tradisional",
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.teal[800],
+  //                   ),
+  //                 ),
+  //                 IconButton(
+  //                   icon: Icon(Icons.close),
+  //                   onPressed: () {
+  //                     Navigator.pop(context);
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               "Kategori Tarian",
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //             SizedBox(height: 12),
+  //             Wrap(
+  //               spacing: 10,
+  //               runSpacing: 10,
+  //               children: [
+  //                 _buildFilterChip("Semua"),
+  //                 _buildFilterChip("Seremonial"),
+  //                 _buildFilterChip("Penyambutan"),
+  //                 _buildFilterChip("Ritual"),
+  //                 _buildFilterChip("Pertunjukan"),
+  //               ],
+  //             ),
+  //             SizedBox(height: 20),
+  //             Text(
+  //               "Jumlah Penari",
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //             SizedBox(height: 12),
+  //             Wrap(
+  //               spacing: 10,
+  //               runSpacing: 10,
+  //               children: [
+  //                 _buildFilterChip("Tunggal"),
+  //                 _buildFilterChip("Berpasangan"),
+  //                 _buildFilterChip("Kelompok Kecil"),
+  //                 _buildFilterChip("Kelompok Besar"),
+  //               ],
+  //             ),
+  //             SizedBox(height: 24),
+  //             Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: OutlinedButton(
+  //                     style: OutlinedButton.styleFrom(
+  //                       side: BorderSide(color: Colors.teal[700]!),
+  //                       padding: EdgeInsets.symmetric(vertical: 12),
+  //                     ),
+  //                     onPressed: () {
+  //                       Navigator.pop(context);
+  //                     },
+  //                     child: Text(
+  //                       "Reset",
+  //                       style: TextStyle(
+  //                         color: Colors.teal[700],
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 SizedBox(width: 16),
+  //                 Expanded(
+  //                   child: ElevatedButton(
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.teal[700],
+  //                       padding: EdgeInsets.symmetric(vertical: 12),
+  //                     ),
+  //                     onPressed: () {
+  //                       Navigator.pop(context);
+  //                       ScaffoldMessenger.of(context).showSnackBar(
+  //                         SnackBar(
+  //                           content: Text('Filter diterapkan'),
+  //                           behavior: SnackBarBehavior.floating,
+  //                         ),
+  //                       );
+  //                     },
+  //                     child: Text(
+  //                       "Terapkan",
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  Widget _buildFilterChip(String label) {
-    return FilterChip(
-      label: Text(label),
-      backgroundColor: Colors.grey[100],
-      selectedColor: Colors.teal[100],
-      checkmarkColor: Colors.teal[700],
-      side: BorderSide(color: Colors.teal[100]!),
-      labelStyle: TextStyle(fontSize: 13),
-      selected: label == "Semua",
-      onSelected: (selected) {
-        // Handle selection in real app
-      },
-    );
-  }
+  // Widget _buildFilterChip(String label) {
+  //   return FilterChip(
+  //     label: Text(label),
+  //     backgroundColor: Colors.grey[100],
+  //     selectedColor: Colors.teal[100],
+  //     checkmarkColor: Colors.teal[700],
+  //     side: BorderSide(color: Colors.teal[100]!),
+  //     labelStyle: TextStyle(fontSize: 13),
+  //     selected: label == "Semua",
+  //     onSelected: (selected) {
+  //       // Handle selection in real app
+  //     },
+  //   );
+  // }
 
   void _showInfoDialog(BuildContext context) {
     showDialog(

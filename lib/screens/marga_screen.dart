@@ -420,44 +420,44 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                 Divider(height: 1),
 
                                 // Image
-                                Container(
-                                  height: 180,
-                                  width: double.infinity,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.zero,
-                                    child: Image.network(
-                                      marga.foto,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return Container(
-                                          color: Colors.grey[200],
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              value: loadingProgress.expectedTotalBytes != null
-                                                  ? loadingProgress.cumulativeBytesLoaded /
-                                                  loadingProgress.expectedTotalBytes!
-                                                  : null,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.red[800]!),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey[200],
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              size: 48,
-                                              color: Colors.grey[400],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
+                                // Container(
+                                //   height: 180,
+                                //   width: double.infinity,
+                                //   child: ClipRRect(
+                                //     borderRadius: BorderRadius.zero,
+                                //     child: Image.network(
+                                //       marga.foto,
+                                //       fit: BoxFit.cover,
+                                //       loadingBuilder: (context, child, loadingProgress) {
+                                //         if (loadingProgress == null) return child;
+                                //         return Container(
+                                //           color: Colors.grey[200],
+                                //           child: Center(
+                                //             child: CircularProgressIndicator(
+                                //               value: loadingProgress.expectedTotalBytes != null
+                                //                   ? loadingProgress.cumulativeBytesLoaded /
+                                //                   loadingProgress.expectedTotalBytes!
+                                //                   : null,
+                                //               valueColor: AlwaysStoppedAnimation<Color>(Colors.red[800]!),
+                                //             ),
+                                //           ),
+                                //         );
+                                //       },
+                                //       errorBuilder: (context, error, stackTrace) {
+                                //         return Container(
+                                //           color: Colors.grey[200],
+                                //           child: Center(
+                                //             child: Icon(
+                                //               Icons.broken_image,
+                                //               size: 48,
+                                //               color: Colors.grey[400],
+                                //             ),
+                                //           ),
+                                //         );
+                                //       },
+                                //     ),
+                                //   ),
+                                // ),
 
                                 // Description
                                 Padding(
@@ -602,15 +602,15 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        trailing: Icon(Icons.arrow_forward_ios, size: 14),
+                        // trailing: Icon(Icons.arrow_forward_ios, size: 14),
                         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         onTap: () {
                           // Navigate to submarga detail
-                          Navigator.pushNamed(
-                            context,
-                            '/submarga-detail',
-                            arguments: subMarga.id,
-                          );
+                          // Navigator.pushNamed(
+                          //   context,
+                          //   '/submarga-detail',
+                          //   arguments: subMarga.id,
+                          // );
                         },
                       );
                     },

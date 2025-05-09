@@ -262,12 +262,6 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
               _showInfoDialog(context);
             },
           ),
-          // IconButton(
-          //   icon: Icon(Icons.filter_list),
-          //   onPressed: () {
-          //     _showFilterOptions(context);
-          //   },
-          // ),
         ],
       ),
       body: Column(
@@ -491,8 +485,8 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                                   Wrap(
                                     spacing: 8,
                                     children: [
-                                      _buildFeatureChip(Icons.style, "Tradisional"),
-                                      _buildFeatureChip(Icons.event, "Adat"),
+                                      _buildFeatureChip(Icons.style, pakaian.feature1),
+                                      _buildFeatureChip(Icons.event, pakaian.feature2),
                                     ],
                                   ),
 
@@ -579,6 +573,12 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -607,6 +607,8 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                     pakaian.nama,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 20,
                       shadows: [
                         Shadow(
                           offset: Offset(1, 1),
@@ -620,28 +622,6 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                 ),
                 backgroundColor: Colors.teal[700],
                 actions: [
-                  IconButton(
-                    icon: Icon(Icons.share),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Bagikan pakaian ${pakaian.nama}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.favorite_border),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Ditambahkan ke favorit'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
 
@@ -686,9 +666,9 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildInfoChip(Icons.style, "Jenis", "Adat"),
-                          _buildInfoChip(Icons.event, "Acara", "Seremonial"),
-                          _buildInfoChip(Icons.auto_awesome, "Status", "Resmi"),
+                          _buildInfoChip(Icons.style, "Jenis", pakaian.feature1),
+                          _buildInfoChip(Icons.event, "Acara", pakaian.feature2),
+                          _buildInfoChip(Icons.auto_awesome, "Status", pakaian.feature3),
                         ],
                       ),
 
@@ -702,17 +682,17 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
 
                       _buildSection(
                         "Sejarah",
-                        "Pakaian ini memiliki sejarah panjang yang berasal dari tradisi masyarakat setempat. Awalnya, pakaian ini dipakai sebagai bagian dari upacara adat dan ritual keagamaan untuk menunjukkan identitas dan status sosial.",
+                        pakaian.sejarah
                       ),
 
                       _buildSection(
                         "Bahan dan Motif",
-                        "Pakaian ini terbuat dari kain berkualitas tinggi dengan motif tradisional yang ditenun atau dibatik secara khusus. Setiap motif memiliki makna filosofis yang menggambarkan hubungan manusia dengan alam dan kehidupan sosial.",
+                        pakaian.bahan
                       ),
 
                       _buildSection(
                         "Kelengkapan dan Aksesoris",
-                        "Pakaian tradisional ini dilengkapi dengan berbagai aksesoris seperti ikat kepala, selendang, perhiasan, dan alas kaki khusus yang menambah keindahan dan kelengkapan pakaian ini saat dikenakan dalam acara adat.",
+                        pakaian.kelengkapan
                       ),
 
                       SizedBox(height: 20),
@@ -745,35 +725,35 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                                 color: Colors.teal[700],
                               ),
                             ),
-                            SizedBox(height: 16),
-                            OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.teal[700]!),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {
-                                _showGalleryPreview(context);
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.photo_library_outlined,
-                                    color: Colors.teal[700],
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Lihat Galeri Foto",
-                                    style: TextStyle(
-                                      color: Colors.teal[700],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // SizedBox(height: 16),
+                            // OutlinedButton(
+                            //   style: OutlinedButton.styleFrom(
+                            //     side: BorderSide(color: Colors.teal[700]!),
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(8),
+                            //     ),
+                            //   ),
+                            //   onPressed: () {
+                            //     _showGalleryPreview(context);
+                            //   },
+                            //   child: Row(
+                            //     mainAxisAlignment: MainAxisAlignment.center,
+                            //     children: [
+                            //       Icon(
+                            //         Icons.photo_library_outlined,
+                            //         color: Colors.teal[700],
+                            //       ),
+                            //       SizedBox(width: 8),
+                            //       Text(
+                            //         "Lihat Galeri Foto",
+                            //         style: TextStyle(
+                            //           color: Colors.teal[700],
+                            //           fontWeight: FontWeight.bold,
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -781,133 +761,133 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                       SizedBox(height: 30),
 
                       // Related pakaian
-                      Text(
-                        "Pakaian Terkait Lainnya",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal[800],
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Container(
-                        height: 180,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 3,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              width: 160,
-                              margin: EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 5,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      pakaian.foto, // Placeholder, would use other images in real app
-                                      height: 110,
-                                      width: 160,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Pakaian ${index + 1}",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          "Pakaian Tradisional",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      // Text(
+                      //   "Pakaian Terkait Lainnya",
+                      //   style: TextStyle(
+                      //     fontSize: 18,
+                      //     fontWeight: FontWeight.bold,
+                      //     color: Colors.teal[800],
+                      //   ),
+                      // ),
+                      // SizedBox(height: 16),
+                      // Container(
+                      //   height: 180,
+                      //   child: ListView.builder(
+                      //     scrollDirection: Axis.horizontal,
+                      //     itemCount: 3,
+                      //     itemBuilder: (context, index) {
+                      //       return Container(
+                      //         width: 160,
+                      //         margin: EdgeInsets.only(right: 12),
+                      //         decoration: BoxDecoration(
+                      //           borderRadius: BorderRadius.circular(12),
+                      //           boxShadow: [
+                      //             BoxShadow(
+                      //               color: Colors.black.withOpacity(0.1),
+                      //               blurRadius: 5,
+                      //               offset: Offset(0, 2),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //         child: Column(
+                      //           crossAxisAlignment: CrossAxisAlignment.start,
+                      //           children: [
+                      //             ClipRRect(
+                      //               borderRadius: BorderRadius.circular(12),
+                      //               child: Image.network(
+                      //                 pakaian.foto, // Placeholder, would use other images in real app
+                      //                 height: 110,
+                      //                 width: 160,
+                      //                 fit: BoxFit.cover,
+                      //               ),
+                      //             ),
+                      //             Padding(
+                      //               padding: EdgeInsets.all(8),
+                      //               child: Column(
+                      //                 crossAxisAlignment: CrossAxisAlignment.start,
+                      //                 children: [
+                      //                   Text(
+                      //                     "Pakaian ${index + 1}",
+                      //                     style: TextStyle(
+                      //                       fontWeight: FontWeight.bold,
+                      //                       fontSize: 14,
+                      //                     ),
+                      //                   ),
+                      //                   SizedBox(height: 4),
+                      //                   Text(
+                      //                     "Pakaian Tradisional",
+                      //                     style: TextStyle(
+                      //                       fontSize: 12,
+                      //                       color: Colors.grey[600],
+                      //                     ),
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       );
+                      //     },
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-          bottomNavigationBar: BottomAppBar(
-            color: Colors.white,
-            elevation: 8,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.teal[700]!),
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        "Kembali",
-                        style: TextStyle(
-                          color: Colors.teal[700],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal[700],
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Berbagi informasi pakaian ${pakaian.nama}'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        "Bagikan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // bottomNavigationBar: BottomAppBar(
+          //   color: Colors.white,
+          //   elevation: 8,
+          //   child: Padding(
+          //     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          //     child: Row(
+          //       children: [
+          //         Expanded(
+          //           child: OutlinedButton(
+          //             style: OutlinedButton.styleFrom(
+          //               side: BorderSide(color: Colors.teal[700]!),
+          //               padding: EdgeInsets.symmetric(vertical: 12),
+          //             ),
+          //             onPressed: () {
+          //               Navigator.of(context).pop();
+          //             },
+          //             child: Text(
+          //               "Kembali",
+          //               style: TextStyle(
+          //                 color: Colors.teal[700],
+          //                 fontWeight: FontWeight.bold,
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //         SizedBox(width: 16),
+          //         Expanded(
+          //           child: ElevatedButton(
+          //             style: ElevatedButton.styleFrom(
+          //               backgroundColor: Colors.teal[700],
+          //               padding: EdgeInsets.symmetric(vertical: 12),
+          //             ),
+          //             onPressed: () {
+          //               ScaffoldMessenger.of(context).showSnackBar(
+          //                 SnackBar(
+          //                   content: Text('Berbagi informasi pakaian ${pakaian.nama}'),
+          //                   behavior: SnackBarBehavior.floating,
+          //                 ),
+          //               );
+          //             },
+          //             child: Text(
+          //               "Bagikan",
+          //               style: TextStyle(
+          //                 fontWeight: FontWeight.bold,
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ),
       ),
     );
@@ -985,368 +965,368 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
     );
   }
 
-  void _showGalleryPreview(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.photo_library,
-                  size: 64,
-                  color: Colors.teal[700],
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    "Galeri Foto",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Fitur ini akan tersedia segera. Kami sedang mengembangkan kemampuan untuk menampilkan galeri foto pakaian tradisional.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal[700],
-                      minimumSize: Size(double.infinity, 45),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text("Tutup"),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showGalleryPreview(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //       ),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Container(
+  //             height: 200,
+  //             decoration: BoxDecoration(
+  //               color: Colors.grey[300],
+  //               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //             ),
+  //             child: Center(
+  //               child: Icon(
+  //                 Icons.photo_library,
+  //                 size: 64,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //           ),
+  //           Padding(
+  //             padding: EdgeInsets.all(16),
+  //             child: Column(
+  //               children: [
+  //                 Text(
+  //                   "Galeri Foto",
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: 8),
+  //                 Text(
+  //                   "Fitur ini akan tersedia segera. Kami sedang mengembangkan kemampuan untuk menampilkan galeri foto pakaian tradisional.",
+  //                   textAlign: TextAlign.center,
+  //                   style: TextStyle(
+  //                     fontSize: 14,
+  //                     color: Colors.grey[700],
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: 16),
+  //                 ElevatedButton(
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.teal[700],
+  //                     minimumSize: Size(double.infinity, 45),
+  //                   ),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                   child: Text("Tutup"),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  void _showFilterOptions(BuildContext context) {
-    showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Filter Pakaian Tradisional",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal[800],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
+  // void _showFilterOptions(BuildContext context) {
+  //   showModalBottomSheet(
+  //       context: context,
+  //       shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //   ),
+  //     builder: (context) {
+  //       return Container(
+  //         padding: EdgeInsets.all(24),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Text(
+  //                   "Filter Pakaian Tradisional",
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.teal[800],
+  //                   ),
+  //                 ),
+  //                 IconButton(
+  //                   icon: Icon(Icons.close),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //
+  //             SizedBox(height: 16),
+  //
+  //             Text(
+  //               "Kategori",
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //
+  //             SizedBox(height: 12),
+  //
+  //             Wrap(
+  //               spacing: 10,
+  //               runSpacing: 10,
+  //               children: [
+  //                 _buildFilterChip("Semua", isSelected: true),
+  //                 _buildFilterChip("Pernikahan"),
+  //                 _buildFilterChip("Upacara Adat"),
+  //                 _buildFilterChip("Sehari-hari"),
+  //                 _buildFilterChip("Pertunjukan"),
+  //               ],
+  //             ),
+  //
+  //             SizedBox(height: 20),
+  //
+  //             Text(
+  //               "Daerah",
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //
+  //             SizedBox(height: 12),
+  //
+  //             Wrap(
+  //               spacing: 10,
+  //               runSpacing: 10,
+  //               children: [
+  //                 _buildFilterChip("Semua", isSelected: true),
+  //                 _buildFilterChip("Sumatera"),
+  //                 _buildFilterChip("Jawa"),
+  //                 _buildFilterChip("Kalimantan"),
+  //                 _buildFilterChip("Sulawesi"),
+  //                 _buildFilterChip("Papua"),
+  //                 _buildFilterChip("Bali"),
+  //                 _buildFilterChip("NTT"),
+  //                 _buildFilterChip("NTB"),
+  //               ],
+  //             ),
+  //
+  //             SizedBox(height: 20),
+  //
+  //             Text(
+  //               "Urutkan Berdasarkan",
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.teal[700],
+  //               ),
+  //             ),
+  //
+  //             SizedBox(height: 12),
+  //
+  //             Wrap(
+  //               spacing: 10,
+  //               runSpacing: 10,
+  //               children: [
+  //                 _buildFilterChip("Terbaru", isSelected: true),
+  //                 _buildFilterChip("Terpopuler"),
+  //                 _buildFilterChip("A-Z"),
+  //                 _buildFilterChip("Z-A"),
+  //               ],
+  //             ),
+  //
+  //             SizedBox(height: 24),
+  //
+  //             Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: OutlinedButton(
+  //                     style: OutlinedButton.styleFrom(
+  //                       side: BorderSide(color: Colors.teal[700]!),
+  //                       padding: EdgeInsets.symmetric(vertical: 12),
+  //                     ),
+  //                     onPressed: () {
+  //                       Navigator.of(context).pop();
+  //                     },
+  //                     child: Text(
+  //                       "Reset",
+  //                       style: TextStyle(
+  //                         color: Colors.teal[700],
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 SizedBox(width: 16),
+  //                 Expanded(
+  //                   child: ElevatedButton(
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.teal[700],
+  //                       padding: EdgeInsets.symmetric(vertical: 12),
+  //                     ),
+  //                     onPressed: () {
+  //                       Navigator.of(context).pop();
+  //                       // Apply filter logic would go here
+  //                       ScaffoldMessenger.of(context).showSnackBar(
+  //                         SnackBar(
+  //                           content: Text('Filter diterapkan'),
+  //                           behavior: SnackBarBehavior.floating,
+  //                         ),
+  //                       );
+  //                     },
+  //                     child: Text(
+  //                       "Terapkan",
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-              SizedBox(height: 16),
+  // Widget _buildFilterChip(String label, {bool isSelected = false}) {
+  //   return FilterChip(
+  //     label: Text(label),
+  //     selected: isSelected,
+  //     selectedColor: Colors.teal[100],
+  //     checkmarkColor: Colors.teal[700],
+  //     backgroundColor: Colors.white,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(16),
+  //       side: BorderSide(color: isSelected ? Colors.teal[700]! : Colors.grey[300]!),
+  //     ),
+  //     labelStyle: TextStyle(
+  //       color: isSelected ? Colors.teal[700] : Colors.grey[800],
+  //       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+  //     ),
+  //     onSelected: (bool selected) {
+  //       // In a real app, you would update the state here
+  //     },
+  //   );
+  // }
+  //
+  // void _showSearchDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //       ),
+  //       child: Padding(
+  //         padding: EdgeInsets.all(16),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Text(
+  //               "Cari Pakaian Tradisional",
+  //               style: TextStyle(
+  //                 fontSize: 18,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Colors.teal[800],
+  //               ),
+  //             ),
+  //             SizedBox(height: 16),
+  //             TextField(
+  //               autofocus: true,
+  //               decoration: InputDecoration(
+  //                 hintText: "Nama pakaian tradisional...",
+  //                 prefixIcon: Icon(Icons.search, color: Colors.teal[700]),
+  //                 border: OutlineInputBorder(
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   borderSide: BorderSide(color: Colors.grey[300]!),
+  //                 ),
+  //                 focusedBorder: OutlineInputBorder(
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   borderSide: BorderSide(color: Colors.teal[700]!, width: 2),
+  //                 ),
+  //               ),
+  //             ),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               "Pencarian Terakhir",
+  //               style: TextStyle(
+  //                 fontSize: 14,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Colors.grey[700],
+  //               ),
+  //             ),
+  //             SizedBox(height: 8),
+  //             Wrap(
+  //               spacing: 8,
+  //               runSpacing: 8,
+  //               children: [
+  //                 _buildSearchHistoryChip("Baju Bodo"),
+  //                 _buildSearchHistoryChip("Kebaya"),
+  //                 _buildSearchHistoryChip("Pakaian Adat Jawa"),
+  //               ],
+  //             ),
+  //             SizedBox(height: 16),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.end,
+  //               children: [
+  //                 TextButton(
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                   child: Text(
+  //                     "Batal",
+  //                     style: TextStyle(
+  //                       color: Colors.grey[700],
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 SizedBox(width: 8),
+  //                 ElevatedButton(
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.teal[700],
+  //                   ),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                     // Search logic would go here
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(
+  //                         content: Text('Mencari pakaian tradisional...'),
+  //                         behavior: SnackBarBehavior.floating,
+  //                       ),
+  //                     );
+  //                   },
+  //                   child: Text("Cari"),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-              Text(
-                "Kategori",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.teal[700],
-                ),
-              ),
-
-              SizedBox(height: 12),
-
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFilterChip("Semua", isSelected: true),
-                  _buildFilterChip("Pernikahan"),
-                  _buildFilterChip("Upacara Adat"),
-                  _buildFilterChip("Sehari-hari"),
-                  _buildFilterChip("Pertunjukan"),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              Text(
-                "Daerah",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.teal[700],
-                ),
-              ),
-
-              SizedBox(height: 12),
-
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFilterChip("Semua", isSelected: true),
-                  _buildFilterChip("Sumatera"),
-                  _buildFilterChip("Jawa"),
-                  _buildFilterChip("Kalimantan"),
-                  _buildFilterChip("Sulawesi"),
-                  _buildFilterChip("Papua"),
-                  _buildFilterChip("Bali"),
-                  _buildFilterChip("NTT"),
-                  _buildFilterChip("NTB"),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              Text(
-                "Urutkan Berdasarkan",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.teal[700],
-                ),
-              ),
-
-              SizedBox(height: 12),
-
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFilterChip("Terbaru", isSelected: true),
-                  _buildFilterChip("Terpopuler"),
-                  _buildFilterChip("A-Z"),
-                  _buildFilterChip("Z-A"),
-                ],
-              ),
-
-              SizedBox(height: 24),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.teal[700]!),
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        "Reset",
-                        style: TextStyle(
-                          color: Colors.teal[700],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal[700],
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        // Apply filter logic would go here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Filter diterapkan'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        "Terapkan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: Colors.teal[100],
-      checkmarkColor: Colors.teal[700],
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: isSelected ? Colors.teal[700]! : Colors.grey[300]!),
-      ),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.teal[700] : Colors.grey[800],
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-      onSelected: (bool selected) {
-        // In a real app, you would update the state here
-      },
-    );
-  }
-
-  void _showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Cari Pakaian Tradisional",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal[800],
-                ),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: "Nama pakaian tradisional...",
-                  prefixIcon: Icon(Icons.search, color: Colors.teal[700]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.teal[700]!, width: 2),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                "Pencarian Terakhir",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildSearchHistoryChip("Baju Bodo"),
-                  _buildSearchHistoryChip("Kebaya"),
-                  _buildSearchHistoryChip("Pakaian Adat Jawa"),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "Batal",
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal[700],
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Search logic would go here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Mencari pakaian tradisional...'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: Text("Cari"),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchHistoryChip(String label) {
-    return Chip(
-      label: Text(label),
-      backgroundColor: Colors.grey[100],
-      deleteIcon: Icon(Icons.close, size: 16),
-      onDeleted: () {
-        // Delete search history logic would go here
-      },
-      labelStyle: TextStyle(
-        fontSize: 12,
-        color: Colors.grey[800],
-      ),
-    );
-  }
+  // Widget _buildSearchHistoryChip(String label) {
+  //   return Chip(
+  //     label: Text(label),
+  //     backgroundColor: Colors.grey[100],
+  //     deleteIcon: Icon(Icons.close, size: 16),
+  //     onDeleted: () {
+  //       // Delete search history logic would go here
+  //     },
+  //     labelStyle: TextStyle(
+  //       fontSize: 12,
+  //       color: Colors.grey[800],
+  //     ),
+  //   );
+  // }
 
   void _showInfoDialog(BuildContext context) {
     showDialog(
@@ -1413,7 +1393,15 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text("Tutup"),
+                    child: Text(
+                      "Tutup",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      )
+                      ,
+                    ),
                   ),
                 ],
               ),

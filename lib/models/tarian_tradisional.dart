@@ -11,6 +11,9 @@ class TarianTradisional {
   final String feature2;
   final String feature3;
   final String video;
+  final String kategori;
+  final String durasi;
+  final String event;
 
   TarianTradisional({
     required this.id,
@@ -25,6 +28,9 @@ class TarianTradisional {
     required this.feature2,
     required this.feature3,
     required this.video,
+    required this.kategori,
+    required this.durasi,
+    required this.event,
   });
 
   factory TarianTradisional.fromJson(Map<String, dynamic> json) =>
@@ -41,6 +47,9 @@ class TarianTradisional {
         feature2: json['feature2'],
         feature3: json['feature3'],
         video: json['video'],
+        kategori: json['kategori'],
+        durasi: json['durasi'],
+        event: json['event'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -56,5 +65,8 @@ class TarianTradisional {
     'feature2': feature2,
     'feature3': feature3,
     'video': video,
+    'kategori': kategori,
+    'durasi': durasi,
+    'event': event,
   };
 }
