@@ -25,6 +25,22 @@ class PakaianTradisional {
     required this.feature3,
   });
 
+  PakaianTradisional copyWith({String? newFoto}) {
+    return PakaianTradisional(
+      id: id,
+      sukuId: sukuId,
+      nama: nama,
+      foto: newFoto ?? foto,
+      deskripsi: deskripsi,
+      sejarah: sejarah,
+      bahan: bahan,
+      kelengkapan: kelengkapan,
+      feature1: feature1,
+      feature2: feature2,
+      feature3: feature3,
+    );
+  }
+
   factory PakaianTradisional.fromJson(Map<String, dynamic> json) =>
       PakaianTradisional(
         id: json['id'],

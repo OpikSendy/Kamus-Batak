@@ -33,6 +33,26 @@ class TarianTradisional {
     required this.event,
   });
 
+  TarianTradisional copyWith({String? newFoto}) {
+    return TarianTradisional(
+      id: id,
+      sukuId: sukuId,
+      nama: nama,
+      foto: newFoto ?? foto,
+      deskripsi: deskripsi,
+      sejarah: sejarah,
+      gerakan: gerakan,
+      kostum: kostum,
+      feature1: feature1,
+      feature2: feature2,
+      feature3: feature3,
+      video: video,
+      kategori: kategori,
+      durasi: durasi,
+      event: event,
+    );
+  }
+
   factory TarianTradisional.fromJson(Map<String, dynamic> json) =>
       TarianTradisional(
         id: json['id'],

@@ -17,4 +17,13 @@ class TarianTradisionalRepository {
   Future<void> deleteTarian(int tarianId) async {
     await _supabaseService.deleteData('tarian_tradisional', 'id', tarianId as String);
   }
+
+  Future<void> updateFoto(int id, String fotoUrl, int sukuId) async {
+    await _supabaseService.updateFoto('tarian_tradisional', 'id', id.toString(), fotoUrl);
+    await _supabaseService.updateFoto('suku', 'id', sukuId.toString(), fotoUrl);
+  }
+
+  Future<String> uploadFoto(String filePath, String bucketName) async {
+    return await _supabaseService.uploadFoto(filePath, bucketName);
+  }
 }

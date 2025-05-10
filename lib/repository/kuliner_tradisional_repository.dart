@@ -17,4 +17,13 @@ class KulinerTradisionalRepository {
   Future<void> deleteKuliner(int kulinerId) async {
     await _supabaseService.deleteData('kuliner_tradisional', 'id', kulinerId as String);
   }
+
+  Future<void> updateFoto(int id, String fotoUrl, int sukuId) async {
+    await _supabaseService.updateFoto('kuliner_tradisional', 'id', id.toString(), fotoUrl);
+    await _supabaseService.updateFoto('suku', 'id', sukuId.toString(), fotoUrl);
+  }
+
+  Future<String> uploadFoto(String filePath, String bucketName) async {
+    return await _supabaseService.uploadFoto(filePath, bucketName);
+  }
 }

@@ -33,6 +33,26 @@ class SenjataTradisional {
     required this.seremonial,
   });
 
+  SenjataTradisional copyWith({String? newFoto}) {
+    return SenjataTradisional(
+      id: id,
+      sukuId: sukuId,
+      nama: nama,
+      foto: newFoto ?? foto,
+      deskripsi: deskripsi,
+      feature1: feature1,
+      feature2: feature2,
+      feature3: feature3,
+      sejarah: sejarah,
+      material: material,
+      simbol: simbol,
+      penggunaan: penggunaan,
+      pertahanan: pertahanan,
+      perburuan: perburuan,
+      seremonial: seremonial,
+    );
+  }
+
   factory SenjataTradisional.fromJson(Map<String, dynamic> json) =>
       SenjataTradisional(
         id: json['id'],

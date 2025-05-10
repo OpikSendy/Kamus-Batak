@@ -15,10 +15,15 @@ class PakaianTradisionalRepository {
   }
 
   Future<void> deletePakaian(int pakaianId) async {
-    await _supabaseService.deleteData('pakaian_tradisional', 'id', pakaianId as String);
+    await _supabaseService.deleteData('pakaian_tradisional', 'id', pakaianId.toString());
   }
 
-  Future<void> updateFoto(int pakaianId, String foto) async {
-    await _supabaseService.updateFoto('pakaian_tradisional', 'id', pakaianId as String, foto);
+  Future<void> updateFoto(int id, String fotoUrl, int sukuId) async {
+    await _supabaseService.updateFoto('pakaian_tradisional', 'id', id.toString(), fotoUrl);
+    await _supabaseService.updateFoto('suku', 'id', sukuId.toString(), fotoUrl);
+  }
+
+  Future<String> uploadFoto(String filePath, String bucketName) async {
+    return await _supabaseService.uploadFoto(filePath, bucketName);
   }
 }

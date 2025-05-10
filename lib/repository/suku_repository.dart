@@ -31,4 +31,23 @@ class SukuRepository {
       throw Exception("Failed to delete suku: $e");
     }
   }
+
+  Future<String> uploadFoto(String filePath, String bucketName) async {
+    try {
+      return await _supabaseService.uploadFoto(filePath, bucketName);
+    } catch (e) {
+      print("Error uploading foto: $e");
+      throw Exception("Failed to upload foto: $e");
+    }
+  }
+
+  Future<void> updateFoto(int id, String fotoUrl, int sukuId) async {
+    try {
+      await _supabaseService.updateFoto('suku', 'id', id.toString(), fotoUrl);
+      await _supabaseService.updateFoto('suku', 'id', sukuId.toString(), fotoUrl);
+    } catch (e) {
+      print("Error updating foto: $e");
+      throw Exception("Failed to update foto: $e");
+    }
+  }
 }

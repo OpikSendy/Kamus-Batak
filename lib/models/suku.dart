@@ -9,6 +9,14 @@ class Suku {
     required this.foto,
   });
 
+  Suku copyWith({String? newFoto}) {
+    return Suku(
+      id: id,
+      nama: nama,
+      foto: newFoto ?? foto,
+    );
+  }
+
   factory Suku.fromJson(Map<String, dynamic> json) {
     return Suku(
       id: json['id'],

@@ -21,6 +21,20 @@ class KulinerTradisional {
     required this.resep,
   });
 
+  KulinerTradisional copyWith({String? newFoto}) {
+    return KulinerTradisional(
+      id: id,
+      sukuId: sukuId,
+      jenis: jenis,
+      nama: nama,
+      foto: newFoto ?? foto,
+      deskripsi: deskripsi,
+      rating: rating,
+      waktu: waktu,
+      resep: resep,
+    );
+  }
+
   factory KulinerTradisional.fromJson(Map<String, dynamic> json) =>
       KulinerTradisional(
         id: json['id'],

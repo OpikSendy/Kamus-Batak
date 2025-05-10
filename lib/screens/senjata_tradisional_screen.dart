@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/senjata_tradisional_viewmodel.dart';
 import '../models/senjata_tradisional.dart';
@@ -63,7 +68,7 @@ class _SenjataTradisionalDetailScreenState
             ],
           ),
         ),
-        backgroundColor: Colors.brown[700],
+        backgroundColor: Colors.red[700],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -77,7 +82,7 @@ class _SenjataTradisionalDetailScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.brown[700]!),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.red[700]!),
             ),
             SizedBox(height: 20),
             Text(
@@ -116,7 +121,7 @@ class _SenjataTradisionalDetailScreenState
             ],
           ),
         ),
-        backgroundColor: Colors.brown[700],
+        backgroundColor: Colors.red[700],
         elevation: 0,
       ),
       body: Center(
@@ -148,7 +153,7 @@ class _SenjataTradisionalDetailScreenState
             SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown[700],
+                backgroundColor: Colors.red[700],
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -175,7 +180,7 @@ class _SenjataTradisionalDetailScreenState
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.brown[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.red[700]),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -183,7 +188,7 @@ class _SenjataTradisionalDetailScreenState
         title: Text(
           title,
           style: TextStyle(
-            color: Colors.brown[700],
+            color: Colors.red[700],
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -194,7 +199,7 @@ class _SenjataTradisionalDetailScreenState
             ],
           ),
         ),
-        backgroundColor: Colors.brown[700],
+        backgroundColor: Colors.red[700],
         elevation: 0,
       ),
       body: Center(
@@ -217,7 +222,7 @@ class _SenjataTradisionalDetailScreenState
             SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown[700],
+                backgroundColor: Colors.red[700],
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -243,7 +248,7 @@ class _SenjataTradisionalDetailScreenState
   Widget _buildSenjataScaffold(
       BuildContext context, SenjataTradisionalViewModel viewModel) {
     return Scaffold(
-      backgroundColor: Colors.brown[50],
+      backgroundColor: Colors.red[50],
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
@@ -294,7 +299,7 @@ class _SenjataTradisionalDetailScreenState
           //       SnackBar(
           //         content: Text("Berbagi informasi senjata tradisional"),
           //         behavior: SnackBarBehavior.floating,
-          //         backgroundColor: Colors.brown[700],
+          //         backgroundColor: Colors.red[700],
           //       ),
           //     );
           //   },
@@ -361,7 +366,7 @@ class _SenjataTradisionalDetailScreenState
                                                       .expectedTotalBytes!
                                               : null,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.brown[700]!),
+                                          Colors.red[700]!),
                                     ),
                                   ),
                                 );
@@ -512,8 +517,8 @@ class _SenjataTradisionalDetailScreenState
                   width: _selectedSenjataIndex == index ? 24 : 8,
                   decoration: BoxDecoration(
                     color: _selectedSenjataIndex == index
-                        ? Colors.brown[700]
-                        : Colors.brown[200],
+                        ? Colors.red[700]
+                        : Colors.red[200],
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -550,12 +555,12 @@ class _SenjataTradisionalDetailScreenState
                         Container(
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.brown[100],
+                            color: Colors.red[100],
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
                             Icons.gavel,
-                            color: Colors.brown[700],
+                            color: Colors.red[700],
                           ),
                         ),
                         SizedBox(width: 12),
@@ -565,7 +570,7 @@ class _SenjataTradisionalDetailScreenState
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.brown[900],
+                              color: Colors.red[900],
                             ),
                           ),
                         ),
@@ -594,7 +599,7 @@ class _SenjataTradisionalDetailScreenState
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.brown[800],
+                        color: Colors.red[800],
                       ),
                     ),
                     SizedBox(height: 8),
@@ -615,16 +620,16 @@ class _SenjataTradisionalDetailScreenState
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.brown[800],
+                        color: Colors.red[800],
                       ),
                     ),
                     SizedBox(height: 8),
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.brown[50],
+                        color: Colors.red[50],
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.brown[100]!),
+                        border: Border.all(color: Colors.red[100]!),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,8 +654,8 @@ class _SenjataTradisionalDetailScreenState
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.brown[700]!,
-                            Colors.brown[900]!,
+                            Colors.red[700]!,
+                            Colors.red[900]!,
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -706,6 +711,412 @@ class _SenjataTradisionalDetailScreenState
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.teal[700],
+        onPressed: () async {
+          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+          if (sukuId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('ID suku tidak ditemukan'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+
+          final viewModel = Provider.of<SenjataTradisionalViewModel>(context, listen: false);
+
+          if (viewModel.senjataList.isEmpty) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            );
+
+            try {
+              // Muat data pakaian berdasarkan sukuId
+              await viewModel.fetchSenjataListBySukuId(sukuId);
+              // Tutup dialog loading
+              Navigator.pop(context);
+
+              // Jika masih kosong setelah fetch, tampilkan pesan
+              if (viewModel.senjataList.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tidak ada data senjata tradisional untuk suku ini'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+            } catch (e) {
+              // Tutup dialog loading jika terjadi error
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Gagal memuat data senjata: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+          }
+
+          // Tampilkan dialog setelah data dimuat
+          await showUpdateFotoDialog(
+            context: context,
+            pakaianList: viewModel.senjataList,
+            sukuId: sukuId,
+            viewModel: viewModel,
+          );
+        },
+        child: const Icon(
+          Icons.edit,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Future<void> showUpdateFotoDialog({
+    required BuildContext context,
+    required List<SenjataTradisional> pakaianList,
+    required int sukuId,
+    required SenjataTradisionalViewModel viewModel,
+  }) async {
+    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
+    if (pakaianList.isEmpty) {
+      // Tampilkan loading indicator saat memuat data
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      try {
+        // Muat data pakaian berdasarkan sukuId
+        await viewModel.fetchSenjataListBySukuId(sukuId);
+        // Tutup dialog loading
+        Navigator.pop(context);
+
+        // Jika masih kosong setelah fetch, tampilkan pesan
+        if (viewModel.senjataList.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak ada data Senjata tradisional untuk suku ini'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return; // Keluar dari fungsi jika tidak ada data
+        }
+      } catch (e) {
+        // Tutup dialog loading jika terjadi error
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data senjata: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return; // Keluar dari fungsi jika terjadi error
+      }
+    }
+
+    final picker = ImagePicker();
+    SenjataTradisional? selectedPakaian;
+    File? selectedImage;
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          // Gunakan pakaianList terbaru dari viewModel
+          final updatedPakaianList = viewModel.senjataList;
+
+          // Debug print untuk memeriksa data
+          print('Jumlah senjata tradisional: ${updatedPakaianList.length}');
+          if (updatedPakaianList.isNotEmpty) {
+            print('Contoh senajta pertama: ${updatedPakaianList[0].nama}');
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Update Foto Senjata',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  // Dropdown dengan styling
+                  DropdownButtonFormField<SenjataTradisional>(
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Pakaian',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    isExpanded: true,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    value: selectedPakaian,
+                    items: updatedPakaianList.map((pakaian) {
+                      return DropdownMenuItem(
+                        value: pakaian,
+                        child: Text(
+                          pakaian.nama,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: isLoading
+                        ? null
+                        : (value) {
+                      setState(() {
+                        selectedPakaian = value;
+                      });
+                    },
+                    hint: const Text('Pilih senjata tradisional'),
+                  ),
+                  const SizedBox(height: 20),
+                  // Preview image
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: selectedImage != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        selectedImage!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Belum ada foto dipilih',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Tombol pilih foto
+                  ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                      try {
+                        final XFile? pickedFile = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 80, // Kompresi gambar
+                          maxWidth: 800,    // Resize gambar
+                        );
+                        if (pickedFile != null) {
+                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
+                          final tempDir = await path_provider.getTemporaryDirectory();
+                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
+
+                          // Salin file ke lokasi yang kita kontrol
+                          final bytes = await pickedFile.readAsBytes();
+                          final file = File(targetPath);
+                          await file.writeAsBytes(bytes);
+
+                          setState(() {
+                            selectedImage = file;
+                          });
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error memilih gambar: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Pilih Foto'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.pop(context),
+                        child: const Text('Batal'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                          if (selectedPakaian == null || selectedImage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Pilih senjata dan foto terlebih dahulu!'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Konfirmasi'),
+                              content: const Text(
+                                'Apakah Anda yakin ingin mengganti foto senjata  ini?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Batal'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Ya, Simpan'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            try {
+                              setState(() {
+                                isLoading = true;
+                              });
+
+                              // Pastikan viewModel.updateFoto dapat menerima File
+                              await viewModel.updateFoto(
+                                  selectedPakaian!.id,
+                                  selectedImage!,
+                                  sukuId,
+                                  'senjata'
+                              );
+
+                              Navigator.pop(context, true);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Foto berhasil diperbarui'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text('Simpan'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -713,7 +1124,7 @@ class _SenjataTradisionalDetailScreenState
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.brown[100],
+        color: Colors.red[100],
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -722,14 +1133,14 @@ class _SenjataTradisionalDetailScreenState
           Icon(
             icon,
             size: 16,
-            color: Colors.brown[700],
+            color: Colors.red[700],
           ),
           SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.brown[800],
+              color: Colors.red[800],
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -745,13 +1156,13 @@ class _SenjataTradisionalDetailScreenState
         Container(
           padding: EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: Colors.brown[200],
+            color: Colors.red[200],
             shape: BoxShape.circle,
           ),
           child: Icon(
             Icons.check,
             size: 14,
-            color: Colors.brown[800],
+            color: Colors.red[800],
           ),
         ),
         SizedBox(width: 12),
@@ -764,7 +1175,7 @@ class _SenjataTradisionalDetailScreenState
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.brown[800],
+                  color: Colors.red[800],
                 ),
               ),
               SizedBox(height: 2),
@@ -772,7 +1183,7 @@ class _SenjataTradisionalDetailScreenState
                 description,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.brown[600],
+                  color: Colors.red[600],
                 ),
               ),
             ],
@@ -792,7 +1203,7 @@ class _SenjataTradisionalDetailScreenState
   //         SnackBar(
   //           content: Text("Ditambahkan ke favorit"),
   //           behavior: SnackBarBehavior.floating,
-  //           backgroundColor: Colors.brown[700],
+  //           backgroundColor: Colors.red[700],
   //         ),
   //       );
   //     },
@@ -800,13 +1211,13 @@ class _SenjataTradisionalDetailScreenState
   //     child: Container(
   //       padding: EdgeInsets.all(8),
   //       decoration: BoxDecoration(
-  //         color: Colors.brown[50],
+  //         color: Colors.red[50],
   //         shape: BoxShape.circle,
-  //         border: Border.all(color: Colors.brown[200]!),
+  //         border: Border.all(color: Colors.red[200]!),
   //       ),
   //       child: Icon(
   //         Icons.favorite_border,
-  //         color: Colors.brown[700],
+  //         color: Colors.red[700],
   //         size: 20,
   //       ),
   //     ),
@@ -850,13 +1261,13 @@ class _SenjataTradisionalDetailScreenState
           children: [
             Icon(
               Icons.info_outline,
-              color: Colors.brown[700],
+              color: Colors.red[700],
             ),
             SizedBox(width: 8),
             Text(
               "Tentang Senjata Tradisional",
               style: TextStyle(
-                color: Colors.brown[800],
+                color: Colors.red[800],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -891,7 +1302,7 @@ class _SenjataTradisionalDetailScreenState
             child: Text(
               "Tutup",
               style: TextStyle(
-                color: Colors.brown[700],
+                color: Colors.red[700],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -948,12 +1359,12 @@ class _SenjataTradisionalDetailScreenState
                       Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.brown[100],
+                          color: Colors.red[100],
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.gavel,
-                          color: Colors.brown[800],
+                          color: Colors.red[800],
                           size: 28,
                         ),
                       ),
@@ -967,7 +1378,7 @@ class _SenjataTradisionalDetailScreenState
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.brown[900],
+                                color: Colors.red[900],
                               ),
                             ),
                             Text(
@@ -1023,9 +1434,9 @@ class _SenjataTradisionalDetailScreenState
                         margin: EdgeInsets.symmetric(vertical: 20),
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.brown[50],
+                          color: Colors.red[50],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.brown[200]!),
+                          border: Border.all(color: Colors.red[200]!),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1043,7 +1454,7 @@ class _SenjataTradisionalDetailScreenState
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.brown[800],
+                                    color: Colors.red[800],
                                   ),
                                 ),
                               ],
@@ -1054,7 +1465,7 @@ class _SenjataTradisionalDetailScreenState
                               style: TextStyle(
                                 fontSize: 14,
                                 height: 1.5,
-                                color: Colors.brown[700],
+                                color: Colors.red[700],
                               ),
                             ),
                           ],
@@ -1070,7 +1481,7 @@ class _SenjataTradisionalDetailScreenState
                             Navigator.of(context).pop();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.brown[700],
+                            backgroundColor: Colors.red[700],
                             padding: EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -1108,7 +1519,7 @@ class _SenjataTradisionalDetailScreenState
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.brown[800],
+              color: Colors.red[800],
             ),
           ),
           SizedBox(height: 8),
@@ -1121,7 +1532,7 @@ class _SenjataTradisionalDetailScreenState
             ),
           ),
           SizedBox(height: 10),
-          Divider(color: Colors.brown[100]),
+          Divider(color: Colors.red[100]),
         ],
       ),
     );

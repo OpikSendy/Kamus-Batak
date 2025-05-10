@@ -35,6 +35,27 @@ class RumahAdat {
     required this.pelestarian,
   });
 
+  RumahAdat copyWith({String? newFoto}) {
+    return RumahAdat(
+      id: id,
+      sukuId: sukuId,
+      nama: nama,
+      foto: newFoto ?? foto,
+      deskripsi: deskripsi,
+      feature1: feature1,
+      feature2: feature2,
+      feature3: feature3,
+      item1: item1,
+      item2: item2,
+      item3: item3,
+      sejarah: sejarah,
+      bangunan: bangunan,
+      ornamen: ornamen,
+      fungsi: fungsi,
+      pelestarian: pelestarian,
+    );
+  }
+
   factory RumahAdat.fromJson(Map<String, dynamic> json) => RumahAdat(
     id: json['id'],
     sukuId: json['suku_id'],

@@ -1,4 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import 'package:kbb/viewmodel/suku_viewmodel.dart';
 import '../models/suku.dart';
@@ -305,7 +311,7 @@ class SukuScreenState extends State<SukuScreen> {
                       icon: Icons.directions_run,
                       title: 'Tarian',
                       subtitle: 'Gerakan tradisional',
-                      color: Colors.purple,
+                      color: Colors.teal,
                       onTap: () {
                         Navigator.pushNamed(context, '/tarian-tradisional-detail', arguments: sukuId);
                       },
@@ -315,7 +321,7 @@ class SukuScreenState extends State<SukuScreen> {
                       icon: Icons.home,
                       title: 'Rumah Adat',
                       subtitle: 'Arsitektur tradisional',
-                      color: Colors.brown,
+                      color: Colors.red,
                       onTap: () {
                         Navigator.pushNamed(context, '/rumah-adat-detail', arguments: sukuId);
                       },
@@ -330,17 +336,413 @@ class SukuScreenState extends State<SukuScreen> {
               ),
             ],
           ),
-          // floatingActionButton: FloatingActionButton(
-          //   backgroundColor: Colors.red[800],
-          //   child: Icon(
-          //       Icons.explore,
-          //       color: Colors.white,
-          //   ),
-          //   onPressed: () {
-          //     Implementasi fungsi floating button
-            // },
-          // ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: Colors.red[800],
+            onPressed: () async {
+              final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+              if (sukuId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('ID suku tidak ditemukan'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+
+              final viewModel = Provider.of<SukuViewModel>(context, listen: false);
+
+              if (viewModel.sukuList.isEmpty) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                );
+
+                try {
+                  // Muat data pakaian berdasarkan sukuId
+                  await viewModel.fetchSukuListById(sukuId);
+                  // Tutup dialog loading
+                  Navigator.pop(context);
+
+                  // Jika masih kosong setelah fetch, tampilkan pesan
+                  if (viewModel.sukuList.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Tidak ada data suku tradisional untuk suku ini'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+                } catch (e) {
+                  // Tutup dialog loading jika terjadi error
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal memuat data senjata: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+              }
+
+              // Tampilkan dialog setelah data dimuat
+              await showUpdateFotoDialog(
+                context: context,
+                pakaianList: viewModel.sukuList,
+                sukuId: sukuId,
+                viewModel: viewModel,
+              );
+            },
+            child: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
+          ),
         );
+      },
+    );
+  }
+
+  Future<void> showUpdateFotoDialog({
+    required BuildContext context,
+    required List<Suku> pakaianList,
+    required int sukuId,
+    required SukuViewModel viewModel,
+  }) async {
+    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
+    if (pakaianList.isEmpty) {
+      // Tampilkan loading indicator saat memuat data
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      try {
+        // Muat data pakaian berdasarkan sukuId
+        await viewModel.fetchSukuListById(sukuId);
+        // Tutup dialog loading
+        Navigator.pop(context);
+
+        // Jika masih kosong setelah fetch, tampilkan pesan
+        if (viewModel.sukuList.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak ada data Suku untuk suku ini'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return; // Keluar dari fungsi jika tidak ada data
+        }
+      } catch (e) {
+        // Tutup dialog loading jika terjadi error
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data suku: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return; // Keluar dari fungsi jika terjadi error
+      }
+    }
+
+    final picker = ImagePicker();
+    Suku? selectedPakaian;
+    File? selectedImage;
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          // Gunakan pakaianList terbaru dari viewModel
+          final updatedPakaianList = viewModel.sukuList;
+
+          // Debug print untuk memeriksa data
+          print('Jumlah suku: ${updatedPakaianList.length}');
+          if (updatedPakaianList.isNotEmpty) {
+            print('Contoh suku pertama: ${updatedPakaianList[0].nama}');
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Update Foto Suku',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  // Dropdown dengan styling
+                  DropdownButtonFormField<Suku>(
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Pakaian',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    isExpanded: true,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    value: selectedPakaian,
+                    items: updatedPakaianList.map((pakaian) {
+                      return DropdownMenuItem(
+                        value: pakaian,
+                        child: Text(
+                          pakaian.nama,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: isLoading
+                        ? null
+                        : (value) {
+                      setState(() {
+                        selectedPakaian = value;
+                      });
+                    },
+                    hint: const Text('Pilih suku'),
+                  ),
+                  const SizedBox(height: 20),
+                  // Preview image
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: selectedImage != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        selectedImage!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Belum ada foto dipilih',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Tombol pilih foto
+                  ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                      try {
+                        final XFile? pickedFile = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 80, // Kompresi gambar
+                          maxWidth: 800,    // Resize gambar
+                        );
+                        if (pickedFile != null) {
+                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
+                          final tempDir = await path_provider.getTemporaryDirectory();
+                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
+
+                          // Salin file ke lokasi yang kita kontrol
+                          final bytes = await pickedFile.readAsBytes();
+                          final file = File(targetPath);
+                          await file.writeAsBytes(bytes);
+
+                          setState(() {
+                            selectedImage = file;
+                          });
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error memilih gambar: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Pilih Foto'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.pop(context),
+                        child: const Text('Batal'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                          if (selectedPakaian == null || selectedImage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Pilih suku dan foto terlebih dahulu!'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Konfirmasi'),
+                              content: const Text(
+                                'Apakah Anda yakin ingin mengganti foto suku ini?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Batal'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Ya, Simpan'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            try {
+                              setState(() {
+                                isLoading = true;
+                              });
+
+                              // Pastikan viewModel.updateFoto dapat menerima File
+                              await viewModel.updateFoto(
+                                  selectedPakaian!.id,
+                                  selectedImage!,
+                                  sukuId,
+                                  'suku'
+                              );
+
+                              Navigator.pop(context, true);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Foto berhasil diperbarui'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text('Simpan'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
       },
     );
   }

@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/tarian_tradisional_viewmodel.dart';
 import '../models/tarian_tradisional.dart';
@@ -58,7 +63,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             ],
           ),
         ),
-        backgroundColor: Colors.teal[700],
+        backgroundColor: Colors.brown[700],
         elevation: 0,
       ),
       body: Center(
@@ -66,7 +71,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.teal[700]!),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.brown[700]!),
             ),
             SizedBox(height: 20),
             Text(
@@ -105,7 +110,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             ],
           ),
         ),
-        backgroundColor: Colors.teal[700],
+        backgroundColor: Colors.brown[700],
         elevation: 0,
       ),
       body: Center(
@@ -137,7 +142,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal[700],
+                backgroundColor: Colors.brown[700],
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -183,7 +188,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             ],
           ),
         ),
-        backgroundColor: Colors.teal[700],
+        backgroundColor: Colors.brown[700],
         elevation: 0,
       ),
       body: Center(
@@ -206,7 +211,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal[700],
+                backgroundColor: Colors.brown[700],
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -252,7 +257,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
               ),
             ],
           ),        ),
-        backgroundColor: Colors.teal[700],
+        backgroundColor: Colors.brown[700],
         elevation: 0,
         actions: [
           IconButton(
@@ -268,7 +273,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           //       SnackBar(
           //         content: Text("Filter tarian tradisional"),
           //         behavior: SnackBarBehavior.floating,
-          //         backgroundColor: Colors.teal[700],
+          //         backgroundColor: Colors.brown[700],
           //       ),
           //     );
           //   },
@@ -279,7 +284,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
         children: [
           // Header with total count
           Container(
-            color: Colors.teal[700],
+            color: Colors.brown[700],
             padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
             child: Row(
               children: [
@@ -343,7 +348,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                     color: Colors.grey[200],
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal[700]!),
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.brown[700]!),
                                         value: loadingProgress.expectedTotalBytes != null
                                             ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                                             : null,
@@ -413,7 +418,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.teal[700]!.withOpacity(0.8),
+                                  color: Colors.brown[700]!.withOpacity(0.8),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
@@ -449,9 +454,9 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: Colors.teal[50],
+                                  color: Colors.brown[50],
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.teal[100]!),
+                                  border: Border.all(color: Colors.brown[100]!),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -459,14 +464,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                     Icon(
                                       Icons.location_on,
                                       size: 14,
-                                      color: Colors.teal[700],
+                                      color: Colors.brown[700],
                                     ),
                                     SizedBox(width: 4),
                                     Text(
                                       "Tarian Tradisional",
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.teal[700],
+                                        color: Colors.brown[700],
                                       ),
                                     ),
                                   ],
@@ -508,7 +513,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                       _showTarianDetail(context, tarian);
                                     },
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Colors.teal[700],
+                                      foregroundColor: Colors.brown[700],
                                     ),
                                     child: Row(
                                       children: [
@@ -536,13 +541,412 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: Colors.teal[700],
-      //   onPressed: () {
-      //     _showFilterOptions(context);
-      //   },
-      //   child: Icon(Icons.search),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.brown[700],
+        onPressed: () async {
+          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+          if (sukuId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('ID suku tidak ditemukan'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+
+          final viewModel = Provider.of<TarianTradisionalViewModel>(context, listen: false);
+
+          if (viewModel.tarianList.isEmpty) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            );
+
+            try {
+              // Muat data pakaian berdasarkan sukuId
+              await viewModel.fetchTarianListBySukuId(sukuId);
+              // Tutup dialog loading
+              Navigator.pop(context);
+
+              // Jika masih kosong setelah fetch, tampilkan pesan
+              if (viewModel.tarianList.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tidak ada data tarian tradisional untuk suku ini'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+            } catch (e) {
+              // Tutup dialog loading jika terjadi error
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Gagal memuat data tarian: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+          }
+
+          // Tampilkan dialog setelah data dimuat
+          await showUpdateFotoDialog(
+            context: context,
+            pakaianList: viewModel.tarianList,
+            sukuId: sukuId,
+            viewModel: viewModel,
+          );
+        },
+        child: const Icon(
+          Icons.edit,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Future<void> showUpdateFotoDialog({
+    required BuildContext context,
+    required List<TarianTradisional> pakaianList,
+    required int sukuId,
+    required TarianTradisionalViewModel viewModel,
+  }) async {
+    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
+    if (pakaianList.isEmpty) {
+      // Tampilkan loading indicator saat memuat data
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      try {
+        // Muat data pakaian berdasarkan sukuId
+        await viewModel.fetchTarianListBySukuId(sukuId);
+        // Tutup dialog loading
+        Navigator.pop(context);
+
+        // Jika masih kosong setelah fetch, tampilkan pesan
+        if (viewModel.tarianList.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak ada data tarian tradisional untuk suku ini'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return; // Keluar dari fungsi jika tidak ada data
+        }
+      } catch (e) {
+        // Tutup dialog loading jika terjadi error
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data tarian: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return; // Keluar dari fungsi jika terjadi error
+      }
+    }
+
+    final picker = ImagePicker();
+    TarianTradisional? selectedPakaian;
+    File? selectedImage;
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          // Gunakan pakaianList terbaru dari viewModel
+          final updatedPakaianList = viewModel.tarianList;
+
+          // Debug print untuk memeriksa data
+          print('Jumlah tarian tradisional: ${updatedPakaianList.length}');
+          if (updatedPakaianList.isNotEmpty) {
+            print('Contoh tarian pertama: ${updatedPakaianList[0].nama}');
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Update Foto Tarian',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  // Dropdown dengan styling
+                  DropdownButtonFormField<TarianTradisional>(
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Pakaian',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    isExpanded: true,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    value: selectedPakaian,
+                    items: updatedPakaianList.map((pakaian) {
+                      return DropdownMenuItem(
+                        value: pakaian,
+                        child: Text(
+                          pakaian.nama,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: isLoading
+                        ? null
+                        : (value) {
+                      setState(() {
+                        selectedPakaian = value;
+                      });
+                    },
+                    hint: const Text('Pilih tarian tradisional'),
+                  ),
+                  const SizedBox(height: 20),
+                  // Preview image
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: selectedImage != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        selectedImage!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Belum ada foto dipilih',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Tombol pilih foto
+                  ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                      try {
+                        final XFile? pickedFile = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 80, // Kompresi gambar
+                          maxWidth: 800,    // Resize gambar
+                        );
+                        if (pickedFile != null) {
+                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
+                          final tempDir = await path_provider.getTemporaryDirectory();
+                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
+
+                          // Salin file ke lokasi yang kita kontrol
+                          final bytes = await pickedFile.readAsBytes();
+                          final file = File(targetPath);
+                          await file.writeAsBytes(bytes);
+
+                          setState(() {
+                            selectedImage = file;
+                          });
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error memilih gambar: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Pilih Foto'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.pop(context),
+                        child: const Text('Batal'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                          if (selectedPakaian == null || selectedImage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Pilih tarian dan foto terlebih dahulu!'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Konfirmasi'),
+                              content: const Text(
+                                'Apakah Anda yakin ingin mengganti foto tarian ini?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Batal'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Ya, Simpan'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            try {
+                              setState(() {
+                                isLoading = true;
+                              });
+
+                              // Pastikan viewModel.updateFoto dapat menerima File
+                              await viewModel.updateFoto(
+                                  selectedPakaian!.id,
+                                  selectedImage!,
+                                  sukuId,
+                                  'tarian'
+                              );
+
+                              Navigator.pop(context, true);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Foto berhasil diperbarui'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text('Simpan'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -559,7 +963,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           Icon(
             icon,
             size: 12,
-            color: Colors.teal[700],
+            color: Colors.brown[700],
           ),
           SizedBox(width: 4),
           Text(
@@ -631,7 +1035,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                   ),
                   centerTitle: true,
                 ),
-                backgroundColor: Colors.teal[700],
+                backgroundColor: Colors.brown[700],
                 actions: [
                   // IconButton(
                   //   icon: Icon(Icons.share),
@@ -671,7 +1075,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal[900],
+                          color: Colors.brown[900],
                         ),
                       ),
                       SizedBox(height: 8),
@@ -680,7 +1084,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                           Icon(
                             Icons.location_on,
                             size: 16,
-                            color: Colors.teal[700],
+                            color: Colors.brown[700],
                           ),
                           SizedBox(width: 4),
                           Text(
@@ -734,9 +1138,9 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.teal[50],
+                          color: Colors.brown[50],
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.teal[100]!),
+                          border: Border.all(color: Colors.brown[100]!),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,7 +1150,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.teal[800],
+                                color: Colors.brown[800],
                               ),
                             ),
                             SizedBox(height: 12),
@@ -755,13 +1159,13 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                               style: TextStyle(
                                 fontSize: 14,
                                 height: 1.5,
-                                color: Colors.teal[700],
+                                color: Colors.brown[700],
                               ),
                             ),
                             SizedBox(height: 16),
                             OutlinedButton(
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.teal[700]!),
+                                side: BorderSide(color: Colors.brown[700]!),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -774,13 +1178,13 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                 children: [
                                   Icon(
                                     Icons.play_circle_outline,
-                                    color: Colors.teal[700],
+                                    color: Colors.brown[700],
                                   ),
                                   SizedBox(width: 8),
                                   Text(
                                     "Tonton Video Tarian",
                                     style: TextStyle(
-                                      color: Colors.teal[700],
+                                      color: Colors.brown[700],
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -799,7 +1203,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                       //   style: TextStyle(
                       //     fontSize: 18,
                       //     fontWeight: FontWeight.bold,
-                      //     color: Colors.teal[800],
+                      //     color: Colors.brown[800],
                       //   ),
                       // ),
                       // SizedBox(height: 16),
@@ -879,7 +1283,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           //         Expanded(
           //           child: OutlinedButton(
           //             style: OutlinedButton.styleFrom(
-          //               side: BorderSide(color: Colors.teal[700]!),
+          //               side: BorderSide(color: Colors.brown[700]!),
           //               padding: EdgeInsets.symmetric(vertical: 12),
           //             ),
           //             onPressed: () {
@@ -888,7 +1292,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           //             child: Text(
           //               "Kembali",
           //               style: TextStyle(
-          //                 color: Colors.teal[700],
+          //                 color: Colors.brown[700],
           //                 fontWeight: FontWeight.bold,
           //               ),
           //             ),
@@ -898,7 +1302,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           //         Expanded(
           //           child: ElevatedButton(
           //             style: ElevatedButton.styleFrom(
-          //               backgroundColor: Colors.teal[700],
+          //               backgroundColor: Colors.brown[700],
           //               padding: EdgeInsets.symmetric(vertical: 12),
           //             ),
           //             onPressed: () {
@@ -936,7 +1340,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.teal[100]!),
+        border: Border.all(color: Colors.brown[100]!),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -949,7 +1353,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
         children: [
           Icon(
             icon,
-            color: Colors.teal[700],
+            color: Colors.brown[700],
             size: 24,
           ),
           SizedBox(height: 8),
@@ -976,7 +1380,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.teal[800],
+              color: Colors.brown[800],
             ),
           ),
           SizedBox(height: 8),
@@ -1013,7 +1417,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                 child: Icon(
                   Icons.play_circle_outline,
                   size: 64,
-                  color: Colors.teal[700],
+                  color: Colors.brown[700],
                 ),
               ),
             ),
@@ -1040,7 +1444,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                   SizedBox(height: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal[700],
+                      backgroundColor: Colors.brown[700],
                       minimumSize: Size(double.infinity, 45),
                     ),
                     onPressed: () {
