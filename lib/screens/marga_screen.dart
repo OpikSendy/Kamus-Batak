@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:kbb/viewmodel/submarga_viewmodel.dart';
 import 'package:kbb/viewmodel/marga_viewmodel.dart';
 import 'package:kbb/models/marga.dart';
+// Import KomentarViewModel dan Komentar model
+import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
+import '../models/komentar.dart'; // Sesuaikan path jika berbeda
 
 class MargaDetailScreen extends StatefulWidget {
   const MargaDetailScreen({super.key});
@@ -14,6 +17,75 @@ class MargaDetailScreen extends StatefulWidget {
 class _MargaDetailScreenState extends State<MargaDetailScreen> {
   final Set<int> _expandedPanels = {};
 
+  // Tambahkan TextEditingController untuk komentar
+  final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+
+  // Tambahkan KomentarViewModel
+  late KomentarViewModel _komentarViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+      if (sukuId != null) {
+        // Menginisialisasi MargaViewModel dan memanggil fetchMargaList
+        Provider.of<MargaViewModel>(context, listen: false).fetchMargaList(sukuId);
+
+        // Inisialisasi KomentarViewModel untuk halaman ini
+        // Kita tidak bisa langsung memuat komentar spesifik untuk 'marga' di sini
+        // karena halaman ini menampilkan daftar marga, bukan satu marga spesifik.
+        // Komentar akan ditambahkan pada detail masing-masing marga jika diperluas.
+        _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  // Fungsi untuk menampilkan snackbar
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  // Fungsi untuk mengirim komentar
+  void _submitComment({required int itemId, required String itemType}) async {
+    if (_commentController.text.trim().isEmpty) {
+      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
+      return;
+    }
+
+    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String komentarText = _commentController.text.trim();
+
+    try {
+      await _komentarViewModel.addComment(
+        itemId: itemId,
+        itemType: itemType,
+        namaAnonim: namaAnonim,
+        komentarText: komentarText,
+      );
+      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
+      _commentController.clear();
+      _nameController.clear();
+      // Perbarui daftar komentar untuk marga ini setelah komentar berhasil dikirim
+      _komentarViewModel.fetchComments(itemId: itemId, itemType: itemType);
+    } catch (e) {
+      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
@@ -22,6 +94,8 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
       return _buildErrorScaffold('Error', 'ID Suku tidak valid');
     }
 
+    // Menggunakan ChangeNotifierProvider di sini untuk MargaViewModel
+    // Pastikan KomentarViewModel sudah di sediakan di level aplikasi (main.dart)
     return ChangeNotifierProvider(
       create: (_) => MargaViewModel()..fetchMargaList(sukuId),
       child: Consumer<MargaViewModel>(
@@ -142,6 +216,7 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -216,7 +291,7 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            "Daftar Marga",
+          "Daftar Marga",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -231,8 +306,8 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
         ),
         leading: IconButton(
           icon: Icon(
-              Icons.arrow_back,
-              color: Colors.white,
+            Icons.arrow_back,
+            color: Colors.white,
           ),
           onPressed: () {
             Navigator.of(context).pop();
@@ -362,6 +437,8 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                   _expandedPanels.remove(marga.id);
                                 } else {
                                   _expandedPanels.add(marga.id);
+                                  // Ketika panel dibuka, muat komentar untuk marga ini
+                                  _komentarViewModel.fetchComments(itemId: marga.id, itemType: 'marga');
                                 }
                               });
                             },
@@ -378,13 +455,17 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                     radius: 24,
                                     backgroundImage: NetworkImage(marga.foto),
                                     onBackgroundImageError: (_, __) {
-                                      // Handle image error
+                                      // Handle image error by showing a default icon
+                                      // You might want to use a placeholder image instead
+                                      print('Error loading image for marga: ${marga.nama}');
                                     },
-                                    child: Icon(
+                                    child: (marga.foto.isEmpty || !Uri.parse(marga.foto).isAbsolute)
+                                        ? Icon( // Show a default icon if photo is empty or invalid
                                       Icons.person,
                                       color: Colors.red[800],
                                       size: 24,
-                                    ),
+                                    )
+                                        : null, // Don't show icon if image is loaded
                                   ),
                                   SizedBox(width: 16),
                                   Expanded(
@@ -419,46 +500,6 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                 // Divider
                                 Divider(height: 1),
 
-                                // Image
-                                // Container(
-                                //   height: 180,
-                                //   width: double.infinity,
-                                //   child: ClipRRect(
-                                //     borderRadius: BorderRadius.zero,
-                                //     child: Image.network(
-                                //       marga.foto,
-                                //       fit: BoxFit.cover,
-                                //       loadingBuilder: (context, child, loadingProgress) {
-                                //         if (loadingProgress == null) return child;
-                                //         return Container(
-                                //           color: Colors.grey[200],
-                                //           child: Center(
-                                //             child: CircularProgressIndicator(
-                                //               value: loadingProgress.expectedTotalBytes != null
-                                //                   ? loadingProgress.cumulativeBytesLoaded /
-                                //                   loadingProgress.expectedTotalBytes!
-                                //                   : null,
-                                //               valueColor: AlwaysStoppedAnimation<Color>(Colors.red[800]!),
-                                //             ),
-                                //           ),
-                                //         );
-                                //       },
-                                //       errorBuilder: (context, error, stackTrace) {
-                                //         return Container(
-                                //           color: Colors.grey[200],
-                                //           child: Center(
-                                //             child: Icon(
-                                //               Icons.broken_image,
-                                //               size: 48,
-                                //               color: Colors.grey[400],
-                                //             ),
-                                //           ),
-                                //         );
-                                //       },
-                                //     ),
-                                //   ),
-                                // ),
-
                                 // Description
                                 Padding(
                                   padding: EdgeInsets.all(16),
@@ -485,6 +526,80 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
 
                                       // Sub Marga Section
                                       _buildSubmargaSection(context, marga.id),
+
+                                      // --- Bagian Komentar ---
+                                      const Divider(height: 32, thickness: 1),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 4,
+                                            height: 24,
+                                            decoration: BoxDecoration(
+                                              color: Colors.red[800],
+                                              borderRadius: BorderRadius.circular(2),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'KOMENTAR',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.2,
+                                              color: Colors.grey[800],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Form untuk menambahkan komentar
+                                      _buildCommentForm(marga.id, 'marga'), // ID marga dan itemType 'marga'
+
+                                      const SizedBox(height: 24),
+
+                                      // Daftar Komentar
+                                      Consumer<KomentarViewModel>(
+                                        builder: (context, komentarViewModel, child) {
+                                          // Filter komentar untuk marga yang sedang diperluas
+                                          final relevantComments = komentarViewModel.comments
+                                              .where((k) => k.itemId == marga.id && k.itemType == 'marga')
+                                              .toList();
+
+                                          if (komentarViewModel.isLoading) {
+                                            return const Center(child: CircularProgressIndicator());
+                                          }
+                                          if (komentarViewModel.errorMessage != null) {
+                                            return Center(
+                                              child: Text(
+                                                'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                                                style: const TextStyle(color: Colors.red),
+                                              ),
+                                            );
+                                          }
+                                          if (relevantComments.isEmpty) {
+                                            return const Center(
+                                              child: Padding(
+                                                padding: EdgeInsets.all(16.0),
+                                                child: Text(
+                                                  'Belum ada komentar yang disetujui untuk marga ini.',
+                                                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          return ListView.builder(
+                                            shrinkWrap: true,
+                                            physics: const NeverScrollableScrollPhysics(),
+                                            itemCount: relevantComments.length,
+                                            itemBuilder: (context, index) {
+                                              final komentar = relevantComments[index];
+                                              return _buildCommentCard(komentar);
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      // --- Akhir Bagian Komentar ---
                                     ],
                                   ),
                                 ),
@@ -623,6 +738,125 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
       ),
     );
   }
+
+  // Widget untuk form komentar
+  Widget _buildCommentForm(int itemId, String itemType) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tinggalkan Komentar Anda',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama (opsional)',
+                hintText: 'Misal: Anonim',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Komentar Anda',
+                hintText: 'Tulis komentar Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Komentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[800],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget untuk card komentar
+  Widget _buildCommentCard(Komentar komentar) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                const SizedBox(width: 8),
+                Text(
+                  komentar.namaAnonim,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey[900],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _formatDate(komentar.tanggalKomentar),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              komentar.komentarText,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Fungsi format tanggal
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
 }
 
 // Search delegate for searching margas
@@ -726,10 +960,12 @@ class MargaSearchDelegate extends SearchDelegate<Marga?> {
             onBackgroundImageError: (_, __) {
               // Handle image error
             },
-            child: Icon(
+            child: (marga.foto.isEmpty || !Uri.parse(marga.foto).isAbsolute)
+                ? Icon(
               Icons.person,
               color: Colors.red[800],
-            ),
+            )
+                : null,
           ),
           title: Text(marga.nama),
           subtitle: Text(

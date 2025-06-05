@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:kbb/utils/page_router.dart';
+import 'package:kbb/viewmodel/komentar_viewmodel.dart';
 import 'package:kbb/viewmodel/kuliner_tradisional_viewmodel.dart';
 import 'package:kbb/viewmodel/marga_viewmodel.dart';
 import 'package:kbb/viewmodel/pakaian_tradisional_viewmodel.dart';
@@ -49,6 +50,7 @@ void main() async {
       ChangeNotifierProvider(create: (_) => KulinerTradisionalViewModel()),
       ChangeNotifierProvider(create: (_) => TarianTradisionalViewModel()),
       ChangeNotifierProvider(create: (_) => RumahAdatViewModel()),
+      ChangeNotifierProvider(create: (_) => KomentarViewModel()),
     ],
     child: const MyApp(),
   ));

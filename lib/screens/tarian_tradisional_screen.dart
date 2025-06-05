@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/tarian_tradisional_viewmodel.dart';
 import '../models/tarian_tradisional.dart';
+// Import KomentarViewModel dan Komentar model
+import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
+import '../models/komentar.dart'; // Sesuaikan path jika berbeda
 
 class TarianTradisionalDetailScreen extends StatefulWidget {
   const TarianTradisionalDetailScreen({super.key});
@@ -16,6 +19,69 @@ class TarianTradisionalDetailScreen extends StatefulWidget {
 }
 
 class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailScreen> {
+  // Tambahkan TextEditingController untuk komentar
+  final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+
+  // Tambahkan KomentarViewModel
+  late KomentarViewModel _komentarViewModel;
+
+  // Variabel untuk menyimpan tarian yang sedang dilihat di detail screen
+  TarianTradisional? _currentDetailedTarian;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Inisialisasi KomentarViewModel
+      _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  // Fungsi untuk menampilkan snackbar
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  // Fungsi untuk mengirim komentar
+  void _submitComment({required int itemId, required String itemType}) async {
+    if (_commentController.text.trim().isEmpty) {
+      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
+      return;
+    }
+
+    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String komentarText = _commentController.text.trim();
+
+    try {
+      await _komentarViewModel.addComment(
+        itemId: itemId,
+        itemType: itemType,
+        namaAnonim: namaAnonim,
+        komentarText: komentarText,
+      );
+      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
+      _commentController.clear();
+      _nameController.clear();
+      // Perbarui daftar komentar untuk item ini setelah komentar berhasil dikirim
+      _komentarViewModel.fetchComments(itemId: itemId, itemType: itemType);
+    } catch (e) {
+      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
@@ -138,6 +204,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 24),
             ElevatedButton(
@@ -256,7 +323,8 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                 color: Colors.black.withOpacity(0.5),
               ),
             ],
-          ),        ),
+          ),
+        ),
         backgroundColor: Colors.brown[700],
         elevation: 0,
         actions: [
@@ -501,8 +569,9 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                   Wrap(
                                     spacing: 8,
                                     children: [
-                                      _buildFeatureChip(Icons.group, "Kelompok"),
-                                      _buildFeatureChip(Icons.event, "Adat"),
+                                      _buildFeatureChip(Icons.group, tarian.kategori),
+                                      _buildFeatureChip(Icons.access_time, tarian.durasi), // Updated icon and value
+                                      _buildFeatureChip(Icons.event, tarian.event),
                                     ],
                                   ),
 
@@ -541,412 +610,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.brown[700],
-        onPressed: () async {
-          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
-          if (sukuId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('ID suku tidak ditemukan'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          }
-
-          final viewModel = Provider.of<TarianTradisionalViewModel>(context, listen: false);
-
-          if (viewModel.tarianList.isEmpty) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-            );
-
-            try {
-              // Muat data pakaian berdasarkan sukuId
-              await viewModel.fetchTarianListBySukuId(sukuId);
-              // Tutup dialog loading
-              Navigator.pop(context);
-
-              // Jika masih kosong setelah fetch, tampilkan pesan
-              if (viewModel.tarianList.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tidak ada data tarian tradisional untuk suku ini'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return;
-              }
-            } catch (e) {
-              // Tutup dialog loading jika terjadi error
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Gagal memuat data tarian: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              return;
-            }
-          }
-
-          // Tampilkan dialog setelah data dimuat
-          await showUpdateFotoDialog(
-            context: context,
-            pakaianList: viewModel.tarianList,
-            sukuId: sukuId,
-            viewModel: viewModel,
-          );
-        },
-        child: const Icon(
-          Icons.edit,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  Future<void> showUpdateFotoDialog({
-    required BuildContext context,
-    required List<TarianTradisional> pakaianList,
-    required int sukuId,
-    required TarianTradisionalViewModel viewModel,
-  }) async {
-    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
-    if (pakaianList.isEmpty) {
-      // Tampilkan loading indicator saat memuat data
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      try {
-        // Muat data pakaian berdasarkan sukuId
-        await viewModel.fetchTarianListBySukuId(sukuId);
-        // Tutup dialog loading
-        Navigator.pop(context);
-
-        // Jika masih kosong setelah fetch, tampilkan pesan
-        if (viewModel.tarianList.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak ada data tarian tradisional untuk suku ini'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return; // Keluar dari fungsi jika tidak ada data
-        }
-      } catch (e) {
-        // Tutup dialog loading jika terjadi error
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat data tarian: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return; // Keluar dari fungsi jika terjadi error
-      }
-    }
-
-    final picker = ImagePicker();
-    TarianTradisional? selectedPakaian;
-    File? selectedImage;
-    bool isLoading = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setState) {
-          // Gunakan pakaianList terbaru dari viewModel
-          final updatedPakaianList = viewModel.tarianList;
-
-          // Debug print untuk memeriksa data
-          print('Jumlah tarian tradisional: ${updatedPakaianList.length}');
-          if (updatedPakaianList.isNotEmpty) {
-            print('Contoh tarian pertama: ${updatedPakaianList[0].nama}');
-          }
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Update Foto Tarian',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Dropdown dengan styling
-                  DropdownButtonFormField<TarianTradisional>(
-                    decoration: InputDecoration(
-                      labelText: 'Pilih Pakaian',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    isExpanded: true,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    value: selectedPakaian,
-                    items: updatedPakaianList.map((pakaian) {
-                      return DropdownMenuItem(
-                        value: pakaian,
-                        child: Text(
-                          pakaian.nama,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: isLoading
-                        ? null
-                        : (value) {
-                      setState(() {
-                        selectedPakaian = value;
-                      });
-                    },
-                    hint: const Text('Pilih tarian tradisional'),
-                  ),
-                  const SizedBox(height: 20),
-                  // Preview image
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: selectedImage != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        selectedImage!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                        : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Belum ada foto dipilih',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Tombol pilih foto
-                  ElevatedButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                      try {
-                        final XFile? pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 80, // Kompresi gambar
-                          maxWidth: 800,    // Resize gambar
-                        );
-                        if (pickedFile != null) {
-                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
-                          final tempDir = await path_provider.getTemporaryDirectory();
-                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
-
-                          // Salin file ke lokasi yang kita kontrol
-                          final bytes = await pickedFile.readAsBytes();
-                          final file = File(targetPath);
-                          await file.writeAsBytes(bytes);
-
-                          setState(() {
-                            selectedImage = file;
-                          });
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error memilih gambar: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Pilih Foto'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Tombol aksi
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.pop(context),
-                        child: const Text('Batal'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                          if (selectedPakaian == null || selectedImage == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Pilih tarian dan foto terlebih dahulu!'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
-
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Konfirmasi'),
-                              content: const Text(
-                                'Apakah Anda yakin ingin mengganti foto tarian ini?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Batal'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  child: const Text('Ya, Simpan'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm == true) {
-                            try {
-                              setState(() {
-                                isLoading = true;
-                              });
-
-                              // Pastikan viewModel.updateFoto dapat menerima File
-                              await viewModel.updateFoto(
-                                  selectedPakaian!.id,
-                                  selectedImage!,
-                                  sukuId,
-                                  'tarian'
-                              );
-
-                              Navigator.pop(context, true);
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Foto berhasil diperbarui'),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } finally {
-                              setState(() {
-                                isLoading = false;
-                              });
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : const Text('Simpan'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-      },
     );
   }
 
@@ -979,6 +642,15 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
   }
 
   void _showTarianDetail(BuildContext context, TarianTradisional tarian) {
+    // Set the currently detailed tarian
+    setState(() {
+      _currentDetailedTarian = tarian;
+    });
+
+    // Fetch comments for this specific tarian
+    _komentarViewModel.fetchComments(itemId: tarian.id, itemType: 'tarian_tradisional');
+
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -1036,36 +708,15 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                   centerTitle: true,
                 ),
                 backgroundColor: Colors.brown[700],
-                actions: [
-                  // IconButton(
-                  //   icon: Icon(Icons.share),
-                  //   onPressed: () {
-                  //     ScaffoldMessenger.of(context).showSnackBar(
-                  //       SnackBar(
-                  //         content: Text('Bagikan tarian ${tarian.nama}'),
-                  //         behavior: SnackBarBehavior.floating,
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
-                  // IconButton(
-                  //   icon: Icon(Icons.favorite_border),
-                  //   onPressed: () {
-                  //     ScaffoldMessenger.of(context).showSnackBar(
-                  //       SnackBar(
-                  //         content: Text('Ditambahkan ke favorit'),
-                  //         behavior: SnackBarBehavior.floating,
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
+                actions: const [
+                  // Anda bisa menambahkan ikon share atau favorit di sini jika diinginkan
                 ],
               ),
 
               // Content
               SliverToBoxAdapter(
                 child: Container(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1078,7 +729,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                           color: Colors.brown[900],
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Icon(
@@ -1086,7 +737,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                             size: 16,
                             color: Colors.brown[700],
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             "Tarian Tradisional Indonesia",
                             style: TextStyle(
@@ -1097,7 +748,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                         ],
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Info chips
                       Row(
@@ -1109,7 +760,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                         ],
                       ),
 
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
                       // Sections
                       _buildSection(
@@ -1119,24 +770,24 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
                       _buildSection(
                         "Sejarah",
-                        tarian.sejarah
+                        tarian.sejarah,
                       ),
 
                       _buildSection(
                         "Gerakan dan Makna",
-                        tarian.gerakan
+                        tarian.gerakan,
                       ),
 
                       _buildSection(
                         "Kostum dan Perlengkapan",
-                        tarian.kostum
+                        tarian.kostum,
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Interactive elements
                       Container(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.brown[50],
                           borderRadius: BorderRadius.circular(16),
@@ -1153,7 +804,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                 color: Colors.brown[800],
                               ),
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(
                               "Tarian ini telah diakui oleh UNESCO sebagai warisan budaya tak benda. Dilestarikan secara turun-temurun, tarian ini menjadi identitas budaya yang kuat bagi masyarakat setempat.",
                               style: TextStyle(
@@ -1162,7 +813,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                 color: Colors.brown[700],
                               ),
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.brown[700]!),
@@ -1180,7 +831,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                     Icons.play_circle_outline,
                                     color: Colors.brown[700],
                                   ),
-                                  SizedBox(width: 8),
+                                  const SizedBox(width: 8),
                                   Text(
                                     "Tonton Video Tarian",
                                     style: TextStyle(
@@ -1195,190 +846,118 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                         ),
                       ),
 
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
-                      // Related tarian
-                      // Text(
-                      //   "Tarian Terkait Lainnya",
-                      //   style: TextStyle(
-                      //     fontSize: 18,
-                      //     fontWeight: FontWeight.bold,
-                      //     color: Colors.brown[800],
-                      //   ),
-                      // ),
-                      // SizedBox(height: 16),
-                      // Container(
-                      //   height: 180,
-                      //   child: ListView.builder(
-                      //     scrollDirection: Axis.horizontal,
-                      //     itemCount: 3,
-                      //     itemBuilder: (context, index) {
-                      //       return Container(
-                      //         width: 160,
-                      //         margin: EdgeInsets.only(right: 12),
-                      //         decoration: BoxDecoration(
-                      //           borderRadius: BorderRadius.circular(12),
-                      //           boxShadow: [
-                      //             BoxShadow(
-                      //               color: Colors.black.withOpacity(0.1),
-                      //               blurRadius: 5,
-                      //               offset: Offset(0, 2),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //         child: Column(
-                      //           crossAxisAlignment: CrossAxisAlignment.start,
-                      //           children: [
-                      //             ClipRRect(
-                      //               borderRadius: BorderRadius.circular(12),
-                      //               child: Image.network(
-                      //                 tarian.foto, // Placeholder, would use other images in real app
-                      //                 height: 110,
-                      //                 width: 160,
-                      //                 fit: BoxFit.cover,
-                      //               ),
-                      //             ),
-                      //             Padding(
-                      //               padding: EdgeInsets.all(8),
-                      //               child: Column(
-                      //                 crossAxisAlignment: CrossAxisAlignment.start,
-                      //                 children: [
-                      //                   Text(
-                      //                     "Tarian ${index + 1}",
-                      //                     style: TextStyle(
-                      //                       fontWeight: FontWeight.bold,
-                      //                       fontSize: 14,
-                      //                     ),
-                      //                   ),
-                      //                   SizedBox(height: 4),
-                      //                   Text(
-                      //                     "Tarian Tradisional",
-                      //                     style: TextStyle(
-                      //                       fontSize: 12,
-                      //                       color: Colors.grey[600],
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       );
-                      //     },
-                      //   ),
-                      // ),
+                      // --- Bagian Komentar ---
+                      const Divider(height: 32, thickness: 1),
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.brown[700], // Sesuaikan warna tema
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'KOMENTAR',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Form untuk menambahkan komentar
+                      _buildCommentForm(tarian.id, 'tarian_tradisional'), // ID tarian dan itemType
+
+                      const SizedBox(height: 24),
+
+                      // Daftar Komentar
+                      Consumer<KomentarViewModel>(
+                        builder: (context, komentarViewModel, child) {
+                          // Filter komentar untuk tarian yang sedang dilihat
+                          final relevantComments = komentarViewModel.comments
+                              .where((k) => k.itemId == _currentDetailedTarian?.id && k.itemType == 'tarian_tradisional')
+                              .toList();
+
+                          if (komentarViewModel.isLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (komentarViewModel.errorMessage != null) {
+                            return Center(
+                              child: Text(
+                                'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          }
+                          if (relevantComments.isEmpty) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Belum ada komentar yang disetujui untuk tarian ini.',
+                                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                ),
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: relevantComments.length,
+                            itemBuilder: (context, index) {
+                              final komentar = relevantComments[index];
+                              return _buildCommentCard(komentar);
+                            },
+                          );
+                        },
+                      ),
+                      // --- Akhir Bagian Komentar ---
                     ],
                   ),
                 ),
               ),
             ],
           ),
-          // bottomNavigationBar: BottomAppBar(
-          //   color: Colors.white,
-          //   elevation: 8,
-          //   child: Padding(
-          //     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          //     child: Row(
-          //       children: [
-          //         Expanded(
-          //           child: OutlinedButton(
-          //             style: OutlinedButton.styleFrom(
-          //               side: BorderSide(color: Colors.brown[700]!),
-          //               padding: EdgeInsets.symmetric(vertical: 12),
-          //             ),
-          //             onPressed: () {
-          //               Navigator.of(context).pop();
-          //             },
-          //             child: Text(
-          //               "Kembali",
-          //               style: TextStyle(
-          //                 color: Colors.brown[700],
-          //                 fontWeight: FontWeight.bold,
-          //               ),
-          //             ),
-          //           ),
-          //         ),
-          //         SizedBox(width: 16),
-          //         Expanded(
-          //           child: ElevatedButton(
-          //             style: ElevatedButton.styleFrom(
-          //               backgroundColor: Colors.brown[700],
-          //               padding: EdgeInsets.symmetric(vertical: 12),
-          //             ),
-          //             onPressed: () {
-          //               ScaffoldMessenger.of(context).showSnackBar(
-          //                 SnackBar(
-          //                   content: Text('Berbagi informasi tarian ${tarian.nama}'),
-          //                   behavior: SnackBarBehavior.floating,
-          //                 ),
-          //               );
-          //             },
-          //             child: Text(
-          //               "Bagikan",
-          //               style: TextStyle(
-          //                 fontWeight: FontWeight.bold,
-          //               ),
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-        // ),
-      // ),
         ),
       ),
     );
   }
 
-
-
   Widget _buildInfoChip(IconData icon, String label) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.brown[100]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
+    return Chip(
+      avatar: Icon(icon, color: Colors.brown[700], size: 18),
+      label: Text(
+        label,
+        style: TextStyle(color: Colors.brown[700], fontSize: 13),
       ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            color: Colors.brown[700],
-            size: 24,
-          ),
-          SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
+      backgroundColor: Colors.brown[100],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.brown[200]!),
       ),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
 
   Widget _buildSection(String title, String content) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 24),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.brown[800],
             ),
@@ -1387,79 +966,142 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           Text(
             content,
             style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
+              fontSize: 16,
               color: Colors.grey[800],
+              height: 1.6,
             ),
+            textAlign: TextAlign.justify,
           ),
         ],
       ),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.brown[700]),
+              SizedBox(width: 10),
+              Text(
+                "Informasi Tarian",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  "Daftar tarian tradisional yang terkait dengan suku ini. Anda bisa melihat detail lebih lanjut dengan mengetuk salah satu kartu tarian.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Setiap tarian dilengkapi dengan deskripsi, sejarah, gerakan, kostum, dan informasi tambahan lainnya.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                "Tutup",
+                style: TextStyle(color: Colors.brown[700], fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _showVideoPreview(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Video Tarian"),
+          content: Text("Fitur pemutaran video akan segera tersedia!"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Oke"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Widget untuk form komentar
+  Widget _buildCommentForm(int itemId, String itemType) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.play_circle_outline,
-                  size: 64,
-                  color: Colors.brown[700],
-                ),
+            Text(
+              'Tinggalkan Komentar Anda',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    "Video Preview",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama (opsional)',
+                hintText: 'Misal: Anonim',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Komentar Anda',
+                hintText: 'Tulis komentar Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Komentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown[700], // Warna disesuaikan dengan tema tarian
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Fitur ini akan tersedia segera. Kami sedang mengembangkan kemampuan untuk menampilkan video tarian tradisional.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.brown[700],
-                      minimumSize: Size(double.infinity, 45),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "Tutup",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
               ),
             ),
           ],
@@ -1468,211 +1110,56 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  // void _showFilterOptions(BuildContext context) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     shape: RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  //     ),
-  //     builder: (context) {
-  //       return Container(
-  //         padding: EdgeInsets.all(24),
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Text(
-  //                   "Filter Tarian Tradisional",
-  //                   style: TextStyle(
-  //                     fontSize: 18,
-  //                     fontWeight: FontWeight.bold,
-  //                     color: Colors.teal[800],
-  //                   ),
-  //                 ),
-  //                 IconButton(
-  //                   icon: Icon(Icons.close),
-  //                   onPressed: () {
-  //                     Navigator.pop(context);
-  //                   },
-  //                 ),
-  //               ],
-  //             ),
-  //             SizedBox(height: 16),
-  //             Text(
-  //               "Kategori Tarian",
-  //               style: TextStyle(
-  //                 fontSize: 16,
-  //                 fontWeight: FontWeight.w600,
-  //                 color: Colors.teal[700],
-  //               ),
-  //             ),
-  //             SizedBox(height: 12),
-  //             Wrap(
-  //               spacing: 10,
-  //               runSpacing: 10,
-  //               children: [
-  //                 _buildFilterChip("Semua"),
-  //                 _buildFilterChip("Seremonial"),
-  //                 _buildFilterChip("Penyambutan"),
-  //                 _buildFilterChip("Ritual"),
-  //                 _buildFilterChip("Pertunjukan"),
-  //               ],
-  //             ),
-  //             SizedBox(height: 20),
-  //             Text(
-  //               "Jumlah Penari",
-  //               style: TextStyle(
-  //                 fontSize: 16,
-  //                 fontWeight: FontWeight.w600,
-  //                 color: Colors.teal[700],
-  //               ),
-  //             ),
-  //             SizedBox(height: 12),
-  //             Wrap(
-  //               spacing: 10,
-  //               runSpacing: 10,
-  //               children: [
-  //                 _buildFilterChip("Tunggal"),
-  //                 _buildFilterChip("Berpasangan"),
-  //                 _buildFilterChip("Kelompok Kecil"),
-  //                 _buildFilterChip("Kelompok Besar"),
-  //               ],
-  //             ),
-  //             SizedBox(height: 24),
-  //             Row(
-  //               children: [
-  //                 Expanded(
-  //                   child: OutlinedButton(
-  //                     style: OutlinedButton.styleFrom(
-  //                       side: BorderSide(color: Colors.teal[700]!),
-  //                       padding: EdgeInsets.symmetric(vertical: 12),
-  //                     ),
-  //                     onPressed: () {
-  //                       Navigator.pop(context);
-  //                     },
-  //                     child: Text(
-  //                       "Reset",
-  //                       style: TextStyle(
-  //                         color: Colors.teal[700],
-  //                         fontWeight: FontWeight.bold,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 SizedBox(width: 16),
-  //                 Expanded(
-  //                   child: ElevatedButton(
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.teal[700],
-  //                       padding: EdgeInsets.symmetric(vertical: 12),
-  //                     ),
-  //                     onPressed: () {
-  //                       Navigator.pop(context);
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         SnackBar(
-  //                           content: Text('Filter diterapkan'),
-  //                           behavior: SnackBarBehavior.floating,
-  //                         ),
-  //                       );
-  //                     },
-  //                     child: Text(
-  //                       "Terapkan",
-  //                       style: TextStyle(
-  //                         fontWeight: FontWeight.bold,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  // Widget _buildFilterChip(String label) {
-  //   return FilterChip(
-  //     label: Text(label),
-  //     backgroundColor: Colors.grey[100],
-  //     selectedColor: Colors.teal[100],
-  //     checkmarkColor: Colors.teal[700],
-  //     side: BorderSide(color: Colors.teal[100]!),
-  //     labelStyle: TextStyle(fontSize: 13),
-  //     selected: label == "Semua",
-  //     onSelected: (selected) {
-  //       // Handle selection in real app
-  //     },
-  //   );
-  // }
-
-  void _showInfoDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          "Tentang Tarian Tradisional",
-          style: TextStyle(
-            color: Colors.teal[800],
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+  // Widget untuk card komentar
+  Widget _buildCommentCard(Komentar komentar) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Tarian tradisional adalah bagian penting dari warisan budaya Indonesia. Setiap tarian memiliki keunikan dan nilai filosofis yang mencerminkan kearifan lokal dan identitas budaya.",
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            SizedBox(height: 16),
             Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: Colors.teal[700],
+                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                const SizedBox(width: 8),
+                Text(
+                  komentar.namaAnonim,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey[900],
+                  ),
                 ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Semua konten dan informasi tarian disediakan untuk tujuan pendidikan dan pelestarian budaya.",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                      fontStyle: FontStyle.italic,
-                    ),
+                const Spacer(),
+                Text(
+                  _formatDate(komentar.tanggalKomentar),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              "Tutup",
+            const SizedBox(height: 8),
+            Text(
+              komentar.komentarText,
               style: TextStyle(
-                color: Colors.teal[700],
-                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // Fungsi format tanggal
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

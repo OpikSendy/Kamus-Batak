@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/rumah_adat_viewmodel.dart';
 import '../models/rumah_adat.dart';
+// Import KomentarViewModel dan Komentar model
+import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
+import '../models/komentar.dart'; // Sesuaikan path jika berbeda
 
 class RumahAdatDetailScreen extends StatefulWidget {
   const RumahAdatDetailScreen({super.key});
@@ -19,11 +22,67 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
   int _selectedRumahIndex = 0;
   final PageController _pageController = PageController();
 
+  // Tambahkan TextEditingController untuk komentar
+  final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+
+  // Tambahkan KomentarViewModel
+  late KomentarViewModel _komentarViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Inisialisasi KomentarViewModel
+      _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
+    });
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
+    _commentController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
+
+  // Fungsi untuk menampilkan snackbar
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  // Fungsi untuk mengirim komentar
+  void _submitComment({required int itemId, required String itemType}) async {
+    if (_commentController.text.trim().isEmpty) {
+      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
+      return;
+    }
+
+    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String komentarText = _commentController.text.trim();
+
+    try {
+      await _komentarViewModel.addComment(
+        itemId: itemId,
+        itemType: itemType,
+        namaAnonim: namaAnonim,
+        komentarText: komentarText,
+      );
+      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
+      _commentController.clear();
+      _nameController.clear();
+      // Perbarui daftar komentar untuk item ini setelah komentar berhasil dikirim
+      _komentarViewModel.fetchComments(itemId: itemId, itemType: itemType);
+    } catch (e) {
+      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +159,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.red[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -108,7 +167,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
         title: Text(
           "Rumah Adat",
           style: TextStyle(
-            color: Colors.red[700],
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -147,6 +206,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 24),
             ElevatedButton(
@@ -178,7 +238,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.red[700]),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -186,7 +246,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
         title: Text(
           title,
           style: TextStyle(
-            color: Colors.red[700],
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
@@ -245,6 +305,17 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
 
   Widget _buildRumahAdatScaffold(
       BuildContext context, RumahAdatViewModel viewModel) {
+    // Muat komentar untuk rumah adat yang sedang aktif saat ini
+    // Pastikan ini dipanggil setiap kali _selectedRumahIndex berubah
+    // atau saat screen pertama kali dibangun
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (viewModel.rumahAdatList.isNotEmpty) {
+        final currentRumahAdat = viewModel.rumahAdatList[_selectedRumahIndex];
+        _komentarViewModel.fetchComments(itemId: currentRumahAdat.id, itemType: 'rumah_adat');
+      }
+    });
+
+
     return Scaffold(
       backgroundColor: Colors.red[50],
       extendBodyBehindAppBar: true,
@@ -284,12 +355,12 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
           ),
         ),
         actions: [
-          // IconButton(
-          //   icon: Icon(Icons.info_outline),
-          //   onPressed: () {
-          //     _showInfoDialog(context);
-          //   },
-          // ),
+          IconButton(
+            icon: Icon(Icons.info_outline, color: Colors.white),
+            onPressed: () {
+              _showInfoDialog(context);
+            },
+          ),
           // IconButton(
           //   icon: Icon(Icons.share),
           //   onPressed: () {
@@ -316,6 +387,9 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
               onPageChanged: (index) {
                 setState(() {
                   _selectedRumahIndex = index;
+                  // Muat komentar untuk rumah adat yang baru dipilih
+                  final currentRumahAdat = viewModel.rumahAdatList[_selectedRumahIndex];
+                  _komentarViewModel.fetchComments(itemId: currentRumahAdat.id, itemType: 'rumah_adat');
                 });
               },
               itemBuilder: (context, index) {
@@ -357,13 +431,13 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                                   child: Center(
                                     child: CircularProgressIndicator(
                                       value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
+                                      loadingProgress.expectedTotalBytes !=
+                                          null
+                                          ? loadingProgress
+                                          .cumulativeBytesLoaded /
+                                          loadingProgress
+                                              .expectedTotalBytes!
+                                          : null,
                                       valueColor: AlwaysStoppedAnimation<Color>(
                                           Colors.red[700]!),
                                     ),
@@ -376,7 +450,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.broken_image,
@@ -509,7 +583,7 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 viewModel.rumahAdatList.length,
-                (index) => AnimatedContainer(
+                    (index) => AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   margin: EdgeInsets.symmetric(horizontal: 4),
                   height: 8,
@@ -705,6 +779,81 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
                     ),
 
                     SizedBox(height: 20),
+
+                    // --- Bagian Komentar ---
+                    const Divider(height: 32, thickness: 1),
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.red[700], // Sesuaikan warna tema
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'KOMENTAR',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Form untuk menambahkan komentar
+                    _buildCommentForm(viewModel.rumahAdatList[_selectedRumahIndex].id, 'rumah_adat'), // ID rumah adat dan itemType
+
+                    const SizedBox(height: 24),
+
+                    // Daftar Komentar
+                    Consumer<KomentarViewModel>(
+                      builder: (context, komentarViewModel, child) {
+                        // Filter komentar untuk rumah adat yang sedang dilihat
+                        final currentRumahId = viewModel.rumahAdatList[_selectedRumahIndex].id;
+                        final relevantComments = komentarViewModel.comments
+                            .where((k) => k.itemId == currentRumahId && k.itemType == 'rumah_adat')
+                            .toList();
+
+                        if (komentarViewModel.isLoading) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (komentarViewModel.errorMessage != null) {
+                          return Center(
+                            child: Text(
+                              'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          );
+                        }
+                        if (relevantComments.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'Belum ada komentar yang disetujui untuk rumah adat ini.',
+                                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: relevantComments.length,
+                          itemBuilder: (context, index) {
+                            final komentar = relevantComments[index];
+                            return _buildCommentCard(komentar);
+                          },
+                        );
+                      },
+                    ),
+                    // --- Akhir Bagian Komentar ---
                   ],
                 ),
               ),
@@ -712,892 +861,401 @@ class _RumahAdatDetailScreenState extends State<RumahAdatDetailScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.teal[700],
-        onPressed: () async {
-          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
-          if (sukuId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('ID suku tidak ditemukan'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          }
-
-          final viewModel = Provider.of<RumahAdatViewModel>(context, listen: false);
-
-          if (viewModel.rumahAdatList.isEmpty) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-            );
-
-            try {
-              // Muat data pakaian berdasarkan sukuId
-              await viewModel.fetchRumahAdatListBySukuId(sukuId);
-              // Tutup dialog loading
-              Navigator.pop(context);
-
-              // Jika masih kosong setelah fetch, tampilkan pesan
-              if (viewModel.rumahAdatList.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tidak ada data pakaian tradisional untuk suku ini'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return;
-              }
-            } catch (e) {
-              // Tutup dialog loading jika terjadi error
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Gagal memuat data pakaian: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              return;
-            }
-          }
-
-          // Tampilkan dialog setelah data dimuat
-          await showUpdateFotoDialog(
-            context: context,
-            pakaianList: viewModel.rumahAdatList,
-            sukuId: sukuId,
-            viewModel: viewModel,
-          );
-        },
-        child: const Icon(
-          Icons.edit,
-          color: Colors.white,
-        ),
-      ),
     );
   }
 
-  Future<void> showUpdateFotoDialog({
-    required BuildContext context,
-    required List<RumahAdat> pakaianList,
-    required int sukuId,
-    required RumahAdatViewModel viewModel,
-  }) async {
-    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
-    if (pakaianList.isEmpty) {
-      // Tampilkan loading indicator saat memuat data
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      try {
-        // Muat data pakaian berdasarkan sukuId
-        await viewModel.fetchRumahAdatListBySukuId(sukuId);
-        // Tutup dialog loading
-        Navigator.pop(context);
-
-        // Jika masih kosong setelah fetch, tampilkan pesan
-        if (viewModel.rumahAdatList.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak ada data pakaian tradisional untuk suku ini'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return; // Keluar dari fungsi jika tidak ada data
-        }
-      } catch (e) {
-        // Tutup dialog loading jika terjadi error
-        Navigator.pop(context);
+  // Widget untuk tombol favorit (contoh, tidak fungsional di sini)
+  Widget _buildFavoriteButton() {
+    return IconButton(
+      icon: Icon(Icons.favorite_border, color: Colors.red[700]),
+      onPressed: () {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat data pakaian: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text("Fitur favorit belum diimplementasikan"),
             behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red[700],
           ),
         );
-        return; // Keluar dari fungsi jika terjadi error
-      }
-    }
-
-    final picker = ImagePicker();
-    RumahAdat? selectedPakaian;
-    File? selectedImage;
-    bool isLoading = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setState) {
-          // Gunakan pakaianList terbaru dari viewModel
-          final updatedPakaianList = viewModel.rumahAdatList;
-
-          // Debug print untuk memeriksa data
-          print('Jumlah rumah adat tradisional: ${updatedPakaianList.length}');
-          if (updatedPakaianList.isNotEmpty) {
-            print('Contoh rumah adat pertama: ${updatedPakaianList[0].nama}');
-          }
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Update Foto Rumah Adat',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Dropdown dengan styling
-                  DropdownButtonFormField<RumahAdat>(
-                    decoration: InputDecoration(
-                      labelText: 'Pilih Pakaian',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    isExpanded: true,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    value: selectedPakaian,
-                    items: updatedPakaianList.map((pakaian) {
-                      return DropdownMenuItem(
-                        value: pakaian,
-                        child: Text(
-                          pakaian.nama,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: isLoading
-                        ? null
-                        : (value) {
-                      setState(() {
-                        selectedPakaian = value;
-                      });
-                    },
-                    hint: const Text('Pilih rumah adat'),
-                  ),
-                  const SizedBox(height: 20),
-                  // Preview image
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: selectedImage != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        selectedImage!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                        : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Belum ada foto dipilih',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Tombol pilih foto
-                  ElevatedButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                      try {
-                        final XFile? pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 80, // Kompresi gambar
-                          maxWidth: 800,    // Resize gambar
-                        );
-                        if (pickedFile != null) {
-                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
-                          final tempDir = await path_provider.getTemporaryDirectory();
-                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
-
-                          // Salin file ke lokasi yang kita kontrol
-                          final bytes = await pickedFile.readAsBytes();
-                          final file = File(targetPath);
-                          await file.writeAsBytes(bytes);
-
-                          setState(() {
-                            selectedImage = file;
-                          });
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error memilih gambar: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Pilih Foto'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Tombol aksi
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.pop(context),
-                        child: const Text('Batal'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                          if (selectedPakaian == null || selectedImage == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Pilih rumah adat dan foto terlebih dahulu!'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
-
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Konfirmasi'),
-                              content: const Text(
-                                'Apakah Anda yakin ingin mengganti foto rumah adat ini?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Batal'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  child: const Text('Ya, Simpan'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm == true) {
-                            try {
-                              setState(() {
-                                isLoading = true;
-                              });
-
-                              // Pastikan viewModel.updateFoto dapat menerima File
-                              await viewModel.updateFoto(
-                                  selectedPakaian!.id,
-                                  selectedImage!,
-                                  sukuId,
-                                  'rumah'
-                              );
-
-                              Navigator.pop(context, true);
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Foto berhasil diperbarui'),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } finally {
-                              setState(() {
-                                isLoading = false;
-                              });
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : const Text('Simpan'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
       },
     );
   }
 
-  Widget _buildFeatureChip(IconData icon, String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.red[100],
+  // Widget untuk chip fitur
+  Widget _buildFeatureChip(IconData icon, String text) {
+    return Chip(
+      avatar: Icon(icon, color: Colors.red[700], size: 18),
+      label: Text(
+        text,
+        style: TextStyle(color: Colors.red[700], fontSize: 13),
+      ),
+      backgroundColor: Colors.red[100],
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.red[200]!),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: Colors.red[700],
-          ),
-          SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.red[800],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
 
+  // Widget untuk item signifikansi budaya
   Widget _buildSignificanceItem(String title, String description) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.red[200],
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.check,
-            size: 14,
-            color: Colors.red[800],
-          ),
+        Row(
+          children: [
+            Icon(Icons.stars, color: Colors.red[700], size: 18),
+            SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[800],
+              ),
+            ),
+          ],
         ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[800],
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.red[600],
-                ),
-              ),
-            ],
+        SizedBox(height: 4),
+        Text(
+          description,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[700],
+            height: 1.5,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFavoriteButton() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          // Toggle favorite status
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Ditambahkan ke favorit"),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red[700],
+  // Dialog untuk informasi
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.red[700]),
+              SizedBox(width: 10),
+              Text(
+                "Informasi Rumah Adat",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  "Bagian ini menampilkan detail lengkap tentang rumah adat terpilih.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Anda bisa menggeser gambar di bagian atas untuk melihat foto-foto lain dari rumah adat ini (jika tersedia).",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Informasi detail mencakup deskripsi, signifikansi budaya, dan poin-poin penting lainnya.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                "Tutup",
+                style: TextStyle(color: Colors.red[700], fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
       },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.red[50],
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.red[200]!),
-        ),
-        child: Icon(
-          Icons.favorite_border,
-          color: Colors.red[700],
-          size: 20,
-        ),
-      ),
     );
   }
 
+  // Fungsi untuk menampilkan gambar full screen
   void _showFullScreenImage(BuildContext context, RumahAdat rumahAdat) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
           backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            elevation: 0,
-            iconTheme: IconThemeData(color: Colors.white),
-          ),
-          body: Center(
-            child: Hero(
-              tag: 'rumah-adat-${rumahAdat.id}',
-              child: InteractiveViewer(
-                panEnabled: true,
-                minScale: 0.5,
-                maxScale: 4,
-                child: Image.network(
-                  rumahAdat.foto,
-                  fit: BoxFit.contain,
+          body: Stack(
+            children: [
+              Center(
+                child: Hero(
+                  tag: 'rumah-adat-${rumahAdat.id}',
+                  child: Image.network(
+                    rumahAdat.foto,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                              : null,
+                          valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.red[700]!),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          color: Colors.white,
+                          size: 80,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                top: 40,
+                left: 10,
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // void _showInfoDialog(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Row(
-  //         children: [
-  //           Icon(
-  //             Icons.info_outline,
-  //             color: Colors.red[700],
-  //           ),
-  //           SizedBox(width: 8),
-  //           Text(
-  //             "Tentang Rumah Adat",
-  //             style: TextStyle(
-  //               color: Colors.red[800],
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       content: Column(
-  //         mainAxisSize: MainAxisSize.min,
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Text(
-  //             "Rumah adat adalah bangunan tradisional yang memiliki ciri khas setiap daerah di Indonesia. Rumah adat mencerminkan kultur, nilai, dan filosofi masyarakat setempat.",
-  //             style: TextStyle(
-  //               fontSize: 14,
-  //               height: 1.5,
-  //             ),
-  //           ),
-  //           SizedBox(height: 16),
-  //           Text(
-  //             "Anda dapat melihat detail setiap rumah adat dengan menggeser layar ke kiri atau kanan, dan memperbesar gambar dengan menyentuhnya.",
-  //             style: TextStyle(
-  //               fontSize: 14,
-  //               height: 1.5,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.of(context).pop();
-  //           },
-  //           child: Text(
-  //             "Tutup",
-  //             style: TextStyle(
-  //               color: Colors.red[700],
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(16),
-  //       ),
-  //     ),
-  //   );
-  // }
-
+  // Fungsi untuk menampilkan informasi detail lebih lanjut
   void _showDetailedInfo(BuildContext context, RumahAdat rumahAdat) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (_, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with drag handle
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 12, bottom: 8),
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: EdgeInsets.all(25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 60,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-
-                // Title
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.red[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.home_work,
-                          color: Colors.red[800],
-                          size: 28,
-                        ),
+                    SizedBox(height: 20),
+                    Text(
+                      rumahAdat.nama,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[900],
                       ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              rumahAdat.nama,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red[900],
-                              ),
-                            ),
-                            Text(
-                              "Arsitektur Tradisional",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Image
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  margin: EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      rumahAdat.foto,
-                      fit: BoxFit.cover,
                     ),
-                  ),
-                ),
-
-                // Sections
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoSection("Sejarah", rumahAdat.sejarah),
-                      _buildInfoSection("Struktur Bangunan", rumahAdat.bangunan),
-                      _buildInfoSection("Ornamen & Ukiran", rumahAdat.ornamen),
-                      _buildInfoSection("Fungsi Sosial", rumahAdat.fungsi),
-                      // Additional information or trivia
-                      Container(
-                        margin: EdgeInsets.symmetric(vertical: 20),
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red[200]!),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.lightbulb_outline,
-                                  color: Colors.amber[800],
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Tahukah Anda?",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red[800],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              "Pembangunan rumah adat biasanya dilakukan secara gotong royong oleh seluruh masyarakat dan dipimpin oleh seorang ahli bangunan tradisional. Proses pembangunannnya sering disertai dengan ritual khusus untuk memastikan keselamatan dan keberkahan.",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.red[600],
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Preservation status
-                      _buildInfoSection("Status Pelestarian", rumahAdat.pelestarian),
-
-                      SizedBox(height: 20),
-
-                      // Bottom action buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Implement 3D view or virtual tour
-                                // ScaffoldMessenger.of(context).showSnackBar(
-                                //   SnackBar(
-                                //     content: Text(
-                                //         "Fitur tur virtual akan segera hadir"),
-                                //     backgroundColor: Colors.red[700],
-                                //   ),
-                                // );
-                              },
-                              icon: Icon(
-                                Icons.view_in_ar,
-                                color: Colors.white
-                              ),
-                              label: Text(
-                                  "Lihat 3D",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  )
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red[700],
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.red[700], size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          "Rumah Adat ${rumahAdat.nama}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
                           ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                // Implement location view on map
-                                // ScaffoldMessenger.of(context).showSnackBar(
-                                //   SnackBar(
-                                //     content: Text("Melihat lokasi pada peta"),
-                                //     behavior: SnackBarBehavior.floating,
-                                //     backgroundColor: Colors.red[700],
-                                //   ),
-                                // );
-                              },
-                              icon: Icon(
-                                Icons.location_on_outlined,
-                                color: Colors.red[800]
-                              ),
-                              label: Text(
-                                "Lokasi",
-                                style: TextStyle(
-                                  color: Colors.red[800],
-                                  fontSize: 16,
-                                )
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red[800],
-                                side: BorderSide(color: Colors.red[300]!),
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    _buildDetailedSection("Sejarah", rumahAdat.sejarah),
+                    _buildDetailedSection("Fungsi dan Penggunaan", rumahAdat.fungsi),
+                    _buildDetailedSection("Ornamen dan Simbol", rumahAdat.ornamen),
+                    SizedBox(height: 30),
+                  ],
                 ),
-              ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Widget untuk setiap bagian detail di bottom sheet
+  Widget _buildDetailedSection(String title, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.red[800],
             ),
           ),
+          SizedBox(height: 8),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[800],
+              height: 1.6,
+            ),
+            textAlign: TextAlign.justify,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget untuk form komentar
+  Widget _buildCommentForm(int itemId, String itemType) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tinggalkan Komentar Anda',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama (opsional)',
+                hintText: 'Misal: Anonim',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Komentar Anda',
+                hintText: 'Tulis komentar Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Komentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[700], // Warna disesuaikan dengan tema rumah adat
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoSection(String title, String content) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 18,
-                margin: EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: Colors.red[700],
-                  borderRadius: BorderRadius.circular(2),
+  // Widget untuk card komentar
+  Widget _buildCommentCard(Komentar komentar) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                const SizedBox(width: 8),
+                Text(
+                  komentar.namaAnonim,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey[900],
+                  ),
                 ),
-              ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[800],
+                const Spacer(),
+                Text(
+                  _formatDate(komentar.tanggalKomentar),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Text(
-            content,
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.6,
-              color: Colors.grey[800],
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              komentar.komentarText,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  // Fungsi format tanggal
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

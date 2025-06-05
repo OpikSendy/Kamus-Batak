@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import 'package:kbb/viewmodel/suku_viewmodel.dart';
 import '../models/suku.dart';
+// Import KomentarViewModel dan Komentar model
+import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
+import '../models/komentar.dart'; // Sesuaikan path jika berbeda
 
 class SukuScreen extends StatefulWidget {
   const SukuScreen({super.key});
@@ -17,9 +20,69 @@ class SukuScreen extends StatefulWidget {
 }
 
 class SukuScreenState extends State<SukuScreen> {
+  final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+
+  // Tambahkan KomentarViewModel di sini
+  late KomentarViewModel _komentarViewModel;
+
   @override
   void initState() {
     super.initState();
+    // Di initState, kita tidak bisa langsung mengakses Provider.of karena context belum sepenuhnya tersedia.
+    // Kita akan memanggil fetchComments setelah build selesai menggunakan WidgetsBinding.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+      if (sukuId != null) {
+        // Inisialisasi KomentarViewModel
+        _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
+        _komentarViewModel.fetchComments(itemId: sukuId, itemType: 'suku');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  // Fungsi untuk menampilkan snackbar
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  // Fungsi untuk mengirim komentar
+  void _submitComment({required int itemId, required String itemType}) async {
+    if (_commentController.text.trim().isEmpty) {
+      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
+      return;
+    }
+
+    // Ambil nama dari controller, jika kosong gunakan 'Anonim'
+    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String komentarText = _commentController.text.trim();
+
+    try {
+      await _komentarViewModel.addComment(
+        itemId: itemId,
+        itemType: itemType,
+        namaAnonim: namaAnonim,
+        komentarText: komentarText,
+      );
+      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
+      _commentController.clear();
+      _nameController.clear(); // Bersihkan nama juga jika mau
+      // Tidak perlu memuat ulang komentar disetujui karena komentar baru belum disetujui
+    } catch (e) {
+      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
+    }
   }
 
   @override
@@ -29,9 +92,11 @@ class SukuScreenState extends State<SukuScreen> {
       return _buildErrorScaffold('Error', 'ID Suku tidak valid');
     }
 
+    // Gunakan MultiProvider atau Consumer bertingkat jika SukuViewModel dan KomentarViewModel belum di root
+    // Di sini kita akan menggunakan Consumer bertingkat untuk demonstrasi
     return Consumer<SukuViewModel>(
-      builder: (context, viewModel, child) {
-        if (viewModel.isLoading) {
+      builder: (context, sukuViewModel, child) {
+        if (sukuViewModel.isLoading) {
           return Scaffold(
             body: Center(
               child: Column(
@@ -54,12 +119,10 @@ class SukuScreenState extends State<SukuScreen> {
           );
         }
 
-        // Find the suku with matching ID
         Suku? suku;
         try {
-          suku = viewModel.sukuList.firstWhere((s) => s.id == sukuId);
+          suku = sukuViewModel.sukuList.firstWhere((s) => s.id == sukuId);
         } catch (e) {
-          // Handle case where suku is not found
           return _buildErrorScaffold('Error', 'Suku tidak ditemukan');
         }
 
@@ -67,7 +130,6 @@ class SukuScreenState extends State<SukuScreen> {
           body: CustomScrollView(
             physics: BouncingScrollPhysics(),
             slivers: [
-              // Beautiful App Bar with image
               SliverAppBar(
                 leading: IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -123,7 +185,6 @@ class SukuScreenState extends State<SukuScreen> {
                             );
                           },
                         ),
-                        // Gradient overlay for better text visibility
                         Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -156,14 +217,12 @@ class SukuScreenState extends State<SukuScreen> {
                 ],
               ),
 
-              // Main Content
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Info card
                       Card(
                         elevation: 2.0,
                         shape: RoundedRectangleBorder(
@@ -217,7 +276,6 @@ class SukuScreenState extends State<SukuScreen> {
 
                       SizedBox(height: 24.0),
 
-                      // Categories header
                       Row(
                         children: [
                           Container(
@@ -255,7 +313,6 @@ class SukuScreenState extends State<SukuScreen> {
                 ),
               ),
 
-              // Grid view of categories
               SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 sliver: SliverGrid(
@@ -330,421 +387,208 @@ class SukuScreenState extends State<SukuScreen> {
                 ),
               ),
 
+              // Bagian Komentar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(height: 32, thickness: 1),
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.red[800],
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'KOMENTAR',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Form untuk menambahkan komentar
+                      _buildCommentForm(sukuId, 'suku'), // Pass itemId dan itemType
+
+                      const SizedBox(height: 24),
+
+                      // Daftar Komentar
+                      Consumer<KomentarViewModel>(
+                        builder: (context, komentarViewModel, child) {
+                          if (komentarViewModel.isLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (komentarViewModel.errorMessage != null) {
+                            return Center(
+                              child: Text(
+                                'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          }
+                          if (komentarViewModel.comments.isEmpty) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Belum ada komentar yang disetujui.',
+                                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                ),
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            shrinkWrap: true, // Penting agar tidak terjadi error unbounded height
+                            physics: const NeverScrollableScrollPhysics(), // Nonaktifkan scroll di dalam listview ini
+                            itemCount: komentarViewModel.comments.length,
+                            itemBuilder: (context, index) {
+                              final komentar = komentarViewModel.comments[index];
+                              return _buildCommentCard(komentar);
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               // Bottom padding
               SliverToBoxAdapter(
                 child: SizedBox(height: 24),
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.red[800],
-            onPressed: () async {
-              final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
-              if (sukuId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('ID suku tidak ditemukan'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return;
-              }
-
-              final viewModel = Provider.of<SukuViewModel>(context, listen: false);
-
-              if (viewModel.sukuList.isEmpty) {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  },
-                );
-
-                try {
-                  // Muat data pakaian berdasarkan sukuId
-                  await viewModel.fetchSukuListById(sukuId);
-                  // Tutup dialog loading
-                  Navigator.pop(context);
-
-                  // Jika masih kosong setelah fetch, tampilkan pesan
-                  if (viewModel.sukuList.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Tidak ada data suku tradisional untuk suku ini'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    return;
-                  }
-                } catch (e) {
-                  // Tutup dialog loading jika terjadi error
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal memuat data senjata: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  return;
-                }
-              }
-
-              // Tampilkan dialog setelah data dimuat
-              await showUpdateFotoDialog(
-                context: context,
-                pakaianList: viewModel.sukuList,
-                sukuId: sukuId,
-                viewModel: viewModel,
-              );
-            },
-            child: const Icon(
-              Icons.edit,
-              color: Colors.white,
-            ),
-          ),
         );
       },
     );
   }
 
-  Future<void> showUpdateFotoDialog({
-    required BuildContext context,
-    required List<Suku> pakaianList,
-    required int sukuId,
-    required SukuViewModel viewModel,
-  }) async {
-    // Periksa apakah pakaianList kosong dan muat data jika diperlukan
-    if (pakaianList.isEmpty) {
-      // Tampilkan loading indicator saat memuat data
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      try {
-        // Muat data pakaian berdasarkan sukuId
-        await viewModel.fetchSukuListById(sukuId);
-        // Tutup dialog loading
-        Navigator.pop(context);
-
-        // Jika masih kosong setelah fetch, tampilkan pesan
-        if (viewModel.sukuList.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak ada data Suku untuk suku ini'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return; // Keluar dari fungsi jika tidak ada data
-        }
-      } catch (e) {
-        // Tutup dialog loading jika terjadi error
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat data suku: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return; // Keluar dari fungsi jika terjadi error
-      }
-    }
-
-    final picker = ImagePicker();
-    Suku? selectedPakaian;
-    File? selectedImage;
-    bool isLoading = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // Mencegah dialog ditutup dengan tap di luar
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setState) {
-          // Gunakan pakaianList terbaru dari viewModel
-          final updatedPakaianList = viewModel.sukuList;
-
-          // Debug print untuk memeriksa data
-          print('Jumlah suku: ${updatedPakaianList.length}');
-          if (updatedPakaianList.isNotEmpty) {
-            print('Contoh suku pertama: ${updatedPakaianList[0].nama}');
-          }
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Update Foto Suku',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Dropdown dengan styling
-                  DropdownButtonFormField<Suku>(
-                    decoration: InputDecoration(
-                      labelText: 'Pilih Pakaian',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    isExpanded: true,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    value: selectedPakaian,
-                    items: updatedPakaianList.map((pakaian) {
-                      return DropdownMenuItem(
-                        value: pakaian,
-                        child: Text(
-                          pakaian.nama,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: isLoading
-                        ? null
-                        : (value) {
-                      setState(() {
-                        selectedPakaian = value;
-                      });
-                    },
-                    hint: const Text('Pilih suku'),
-                  ),
-                  const SizedBox(height: 20),
-                  // Preview image
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: selectedImage != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        selectedImage!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                        : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Belum ada foto dipilih',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Tombol pilih foto
-                  ElevatedButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                      try {
-                        final XFile? pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 80, // Kompresi gambar
-                          maxWidth: 800,    // Resize gambar
-                        );
-                        if (pickedFile != null) {
-                          // Salin file ke lokasi yang kita kontrol untuk memastikan path valid
-                          final tempDir = await path_provider.getTemporaryDirectory();
-                          final targetPath = path.join(tempDir.path, 'picked_image.jpg');
-
-                          // Salin file ke lokasi yang kita kontrol
-                          final bytes = await pickedFile.readAsBytes();
-                          final file = File(targetPath);
-                          await file.writeAsBytes(bytes);
-
-                          setState(() {
-                            selectedImage = file;
-                          });
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error memilih gambar: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Pilih Foto'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Tombol aksi
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.pop(context),
-                        child: const Text('Batal'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                          if (selectedPakaian == null || selectedImage == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Pilih suku dan foto terlebih dahulu!'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
-
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Konfirmasi'),
-                              content: const Text(
-                                'Apakah Anda yakin ingin mengganti foto suku ini?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Batal'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  child: const Text('Ya, Simpan'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm == true) {
-                            try {
-                              setState(() {
-                                isLoading = true;
-                              });
-
-                              // Pastikan viewModel.updateFoto dapat menerima File
-                              await viewModel.updateFoto(
-                                  selectedPakaian!.id,
-                                  selectedImage!,
-                                  sukuId,
-                                  'suku'
-                              );
-
-                              Navigator.pop(context, true);
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Foto berhasil diperbarui'),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Gagal memperbarui foto: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } finally {
-                              setState(() {
-                                isLoading = false;
-                              });
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : const Text('Simpan'),
-                      ),
-                    ],
-                  ),
-                ],
+  Widget _buildCommentForm(int itemId, String itemType) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tinggalkan Komentar Anda',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
               ),
             ),
-          );
-        });
-      },
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama (opsional)',
+                hintText: 'Misal: Anonim',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Komentar Anda',
+                hintText: 'Tulis komentar Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Komentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[800],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Widget _buildCommentCard(Komentar komentar) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                const SizedBox(width: 8),
+                Text(
+                  komentar.namaAnonim,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey[900],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _formatDate(komentar.tanggalKomentar),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              komentar.komentarText,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildCategoryCard(
