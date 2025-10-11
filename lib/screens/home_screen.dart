@@ -1,4 +1,6 @@
+// lib/screens/home_screen.dart (Updated)
 import 'package:flutter/material.dart';
+import 'package:kbb/screens/add/add_suku_screen.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/suku_viewmodel.dart';
 
@@ -107,20 +109,6 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              // actions: [
-              //   IconButton(
-              //     icon: Icon(Icons.search, color: Colors.white),
-              //     onPressed: () {
-              //       Implementasi pencarian
-                  // },
-                // ),
-                // IconButton(
-                //   icon: Icon(Icons.info_outline, color: Colors.white),
-                //   onPressed: () {
-                //     Tampilkan informasi tentang aplikasi
-                  // },
-                // ),
-              // ],
             ),
           ];
         },
@@ -148,6 +136,33 @@ class HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey[700],
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddSukuScreen(),
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                          Icons.add,
+                        color: Colors.white,
+                      ),
+                      label: Text('Tambah Suku Pertama'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[800],
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                       ),
                     ),
                   ],
@@ -307,16 +322,30 @@ class HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: Colors.red[800],
-      //   child: Icon(
-      //       Icons.explore,
-      //       color: Colors.white,
-      //   ),
-      //   onPressed: () {
-          // Implementasi fungsi floating button
-        // },
-      // ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddSukuScreen(),
+            ),
+          );
+
+          // Refresh list setelah kembali
+          if (mounted) {
+            Provider.of<SukuViewModel>(context, listen: false).fetchSukuList();
+          }
+        },
+        backgroundColor: Colors.red[800],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Tambah Suku',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }

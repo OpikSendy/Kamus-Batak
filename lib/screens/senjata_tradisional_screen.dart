@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kbb/screens/add/add_senjata_tradisional_screen.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
@@ -312,7 +313,7 @@ class _SenjataTradisionalDetailScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (viewModel.senjataList.isNotEmpty) {
         final currentSenjata = viewModel.senjataList[_selectedSenjataIndex];
-        _komentarViewModel.fetchComments(itemId: currentSenjata.id, itemType: 'senjata_tradisional');
+        _komentarViewModel.fetchComments(itemId: currentSenjata.id!, itemType: 'senjata_tradisional');
       }
     });
 
@@ -388,7 +389,7 @@ class _SenjataTradisionalDetailScreenState
                   _selectedSenjataIndex = index;
                   // Muat komentar untuk senjata tradisional yang baru dipilih
                   final currentSenjata = viewModel.senjataList[_selectedSenjataIndex];
-                  _komentarViewModel.fetchComments(itemId: currentSenjata.id, itemType: 'senjata_tradisional');
+                  _komentarViewModel.fetchComments(itemId: currentSenjata.id!, itemType: 'senjata_tradisional');
                 });
               },
               itemBuilder: (context, index) {
@@ -804,7 +805,7 @@ class _SenjataTradisionalDetailScreenState
                     const SizedBox(height: 16),
 
                     // Form untuk menambahkan komentar
-                    _buildCommentForm(viewModel.senjataList[_selectedSenjataIndex].id, 'senjata_tradisional'), // ID senjata dan itemType
+                    _buildCommentForm(viewModel.senjataList[_selectedSenjataIndex].id!, 'senjata_tradisional'), // ID senjata dan itemType
 
                     const SizedBox(height: 24),
 
@@ -857,6 +858,33 @@ class _SenjataTradisionalDetailScreenState
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+          if (sukuId != null) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddSenjataTradisionalScreen(sukuId: sukuId),
+              ),
+            );
+
+            // Refresh list setelah kembali
+            if (mounted) {
+              viewModel.fetchSenjataList(sukuId);
+            }
+          }
+        },
+        backgroundColor: Colors.red[800],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Tambah Senjata',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

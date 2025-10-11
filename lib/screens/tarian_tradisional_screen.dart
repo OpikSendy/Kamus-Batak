@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kbb/screens/add/add_tarian_tradisional_scren.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/tarian_tradisional_viewmodel.dart';
 import '../models/tarian_tradisional.dart';
-// Import KomentarViewModel dan Komentar model
-import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
-import '../models/komentar.dart'; // Sesuaikan path jika berbeda
+import '../viewmodel/komentar_viewmodel.dart';
+import '../models/komentar.dart';
 
 class TarianTradisionalDetailScreen extends StatefulWidget {
   const TarianTradisionalDetailScreen({super.key});
@@ -19,21 +19,15 @@ class TarianTradisionalDetailScreen extends StatefulWidget {
 }
 
 class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailScreen> {
-  // Tambahkan TextEditingController untuk komentar
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-
-  // Tambahkan KomentarViewModel
   late KomentarViewModel _komentarViewModel;
-
-  // Variabel untuk menyimpan tarian yang sedang dilihat di detail screen
   TarianTradisional? _currentDetailedTarian;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Inisialisasi KomentarViewModel
       _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
     });
   }
@@ -45,7 +39,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     super.dispose();
   }
 
-  // Fungsi untuk menampilkan snackbar
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -55,7 +48,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  // Fungsi untuk mengirim komentar
   void _submitComment({required int itemId, required String itemType}) async {
     if (_commentController.text.trim().isEmpty) {
       _showSnackBar('Komentar tidak boleh kosong!', isError: true);
@@ -75,7 +67,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
       _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
       _commentController.clear();
       _nameController.clear();
-      // Perbarui daftar komentar untuk item ini setelah komentar berhasil dikirim
       _komentarViewModel.fetchComments(itemId: itemId, itemType: itemType);
     } catch (e) {
       _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
@@ -180,53 +171,56 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
         elevation: 0,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_note,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              "Tidak ada data tarian tradisional",
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.music_note,
+                size: 80,
+                color: Colors.grey[400],
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "Informasi tarian tradisional belum tersedia",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown[700],
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Kembali',
+              SizedBox(height: 16),
+              Text(
+                "Tidak ada data tarian tradisional",
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 8),
+              Text(
+                "Informasi tarian tradisional belum tersedia",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown[700],
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'Kembali',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -259,49 +253,55 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
         elevation: 0,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[700],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 80,
+                color: Colors.grey[400],
               ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown[700],
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Kembali',
+              SizedBox(height: 16),
+              Text(
+                message,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.grey[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown[700],
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'Kembali',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildTarianScaffold(List<TarianTradisional> tarianList) {
+    final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -334,18 +334,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
               _showInfoDialog(context);
             },
           ),
-          // IconButton(
-          //   icon: Icon(Icons.filter_list, color: Colors.white,),
-          //   onPressed: () {
-          //     ScaffoldMessenger.of(context).showSnackBar(
-          //       SnackBar(
-          //         content: Text("Filter tarian tradisional"),
-          //         behavior: SnackBarBehavior.floating,
-          //         backgroundColor: Colors.brown[700],
-          //       ),
-          //     );
-          //   },
-          // ),
         ],
       ),
       body: Column(
@@ -361,11 +349,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                   color: Colors.white,
                 ),
                 SizedBox(width: 10),
-                Text(
-                  "Ditemukan ${tarianList.length} tarian tradisional",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    "Ditemukan ${tarianList.length} tarian tradisional",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -477,6 +468,8 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                     ),
                                   ],
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             // View details button
@@ -490,6 +483,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
                                       Icons.visibility,
@@ -535,11 +529,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                       color: Colors.brown[700],
                                     ),
                                     SizedBox(width: 4),
-                                    Text(
-                                      "Tarian Tradisional",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.brown[700],
+                                    Flexible(
+                                      child: Text(
+                                        "Tarian Tradisional",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.brown[700],
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -562,38 +559,48 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
                               SizedBox(height: 16),
 
-                              // Action row
-                              Row(
+                              // Action row - PERBAIKAN DISINI
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Features row
+                                  // Features row dengan Wrap
                                   Wrap(
                                     spacing: 8,
+                                    runSpacing: 8,
                                     children: [
                                       _buildFeatureChip(Icons.group, tarian.kategori),
-                                      _buildFeatureChip(Icons.access_time, tarian.durasi), // Updated icon and value
+                                      _buildFeatureChip(Icons.access_time, tarian.durasi),
                                       _buildFeatureChip(Icons.event, tarian.event),
                                     ],
                                   ),
 
-                                  Spacer(),
+                                  SizedBox(height: 12),
 
-                                  TextButton(
-                                    onPressed: () {
-                                      _showTarianDetail(context, tarian);
-                                    },
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.brown[700],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "Baca Selengkapnya",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
+                                  // Button Baca Selengkapnya
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: () {
+                                        _showTarianDetail(context, tarian);
+                                      },
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.brown[700],
+                                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            "Baca Selengkapnya",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
                                           ),
-                                        ),
-                                        Icon(Icons.arrow_forward, size: 16),
-                                      ],
+                                          SizedBox(width: 4),
+                                          Icon(Icons.arrow_forward, size: 16),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -610,6 +617,30 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
           ),
         ],
       ),
+      floatingActionButton: sukuId != null ? FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTarianTradisionalScreen(sukuId: sukuId),
+            ),
+          );
+
+          if (mounted) {
+            Provider.of<TarianTradisionalViewModel>(context, listen: false)
+                .fetchTarianList(sukuId);
+          }
+        },
+        backgroundColor: Colors.brown[800],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Tambah Tarian',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ) : null,
     );
   }
 
@@ -629,11 +660,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             color: Colors.brown[700],
           ),
           SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[700],
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[700],
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -642,14 +676,11 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
   }
 
   void _showTarianDetail(BuildContext context, TarianTradisional tarian) {
-    // Set the currently detailed tarian
     setState(() {
       _currentDetailedTarian = tarian;
     });
 
-    // Fetch comments for this specific tarian
-    _komentarViewModel.fetchComments(itemId: tarian.id, itemType: 'tarian_tradisional');
-
+    _komentarViewModel.fetchComments(itemId: tarian.id!, itemType: 'tarian_tradisional');
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -674,7 +705,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                         tarian.foto,
                         fit: BoxFit.cover,
                       ),
-                      // Gradient overlay for text visibility
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -694,7 +724,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                     tarian.nama,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 18,
                       color: Colors.white,
                       shadows: [
                         Shadow(
@@ -706,11 +736,9 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                     ),
                   ),
                   centerTitle: true,
+                  titlePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 backgroundColor: Colors.brown[700],
-                actions: const [
-                  // Anda bisa menambahkan ikon share atau favorit di sini jika diinginkan
-                ],
               ),
 
               // Content
@@ -738,11 +766,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                             color: Colors.brown[700],
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            "Tarian Tradisional Indonesia",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
+                          Flexible(
+                            child: Text(
+                              "Tarian Tradisional Indonesia",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -750,9 +781,11 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
                       const SizedBox(height: 20),
 
-                      // Info chips
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      // Info chips - Responsive wrap
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
                         children: [
                           _buildInfoChip(Icons.groups, tarian.kategori),
                           _buildInfoChip(Icons.timer, tarian.durasi),
@@ -814,32 +847,40 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                               ),
                             ),
                             const SizedBox(height: 16),
-                            OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.brown[700]!),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: Colors.brown[700]!),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: EdgeInsets.symmetric(vertical: 12),
                                 ),
-                              ),
-                              onPressed: () {
-                                _showVideoPreview(context);
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.play_circle_outline,
-                                    color: Colors.brown[700],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Tonton Video Tarian",
-                                    style: TextStyle(
+                                onPressed: () {
+                                  _showVideoPreview(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.play_circle_outline,
                                       color: Colors.brown[700],
-                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        "Tonton Video Tarian",
+                                        style: TextStyle(
+                                          color: Colors.brown[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -856,18 +897,21 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                             width: 4,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: Colors.brown[700], // Sesuaikan warna tema
+                              color: Colors.brown[700],
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'KOMENTAR',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: Colors.grey[800],
+                          Flexible(
+                            child: Text(
+                              'KOMENTAR',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                                color: Colors.grey[800],
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -875,14 +919,13 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                       const SizedBox(height: 16),
 
                       // Form untuk menambahkan komentar
-                      _buildCommentForm(tarian.id, 'tarian_tradisional'), // ID tarian dan itemType
+                      _buildCommentForm(tarian.id!, 'tarian_tradisional'),
 
                       const SizedBox(height: 24),
 
                       // Daftar Komentar
                       Consumer<KomentarViewModel>(
                         builder: (context, komentarViewModel, child) {
-                          // Filter komentar untuk tarian yang sedang dilihat
                           final relevantComments = komentarViewModel.comments
                               .where((k) => k.itemId == _currentDetailedTarian?.id && k.itemType == 'tarian_tradisional')
                               .toList();
@@ -892,9 +935,13 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                           }
                           if (komentarViewModel.errorMessage != null) {
                             return Center(
-                              child: Text(
-                                'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
-                                style: const TextStyle(color: Colors.red),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                                  style: const TextStyle(color: Colors.red),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             );
                           }
@@ -905,6 +952,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                                 child: Text(
                                   'Belum ada komentar yang disetujui untuk tarian ini.',
                                   style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             );
@@ -945,6 +993,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
         side: BorderSide(color: Colors.brown[200]!),
       ),
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      visualDensity: VisualDensity.compact,
     );
   }
 
@@ -987,9 +1036,11 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
             children: [
               Icon(Icons.info_outline, color: Colors.brown[700]),
               SizedBox(width: 10),
-              Text(
-                "Informasi Tarian",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Flexible(
+                child: Text(
+                  "Informasi Tarian",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -1029,11 +1080,15 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text("Video Tarian"),
           content: Text("Fitur pemutaran video akan segera tersedia!"),
           actions: <Widget>[
             TextButton(
-              child: Text("Oke"),
+              child: Text(
+                "Oke",
+                style: TextStyle(color: Colors.brown[700], fontWeight: FontWeight.bold),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -1044,7 +1099,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  // Widget untuk form komentar
   Widget _buildCommentForm(int itemId, String itemType) {
     return Card(
       elevation: 2.0,
@@ -1072,6 +1126,7 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 prefixIcon: const Icon(Icons.person_outline),
+                isDense: true,
               ),
             ),
             const SizedBox(height: 12),
@@ -1088,14 +1143,14 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
               ),
             ),
             const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
+            SizedBox(
+              width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
-                icon: const Icon(Icons.send),
+                icon: const Icon(Icons.send, size: 18),
                 label: const Text('Kirim Komentar'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.brown[700], // Warna disesuaikan dengan tema tarian
+                  backgroundColor: Colors.brown[700],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -1110,7 +1165,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  // Widget untuk card komentar
   Widget _buildCommentCard(Komentar komentar) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1125,15 +1179,18 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
               children: [
                 const Icon(Icons.account_circle, color: Colors.grey, size: 28),
                 const SizedBox(width: 8),
-                Text(
-                  komentar.namaAnonim,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.grey[900],
+                Expanded(
+                  child: Text(
+                    komentar.namaAnonim,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.grey[900],
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   _formatDate(komentar.tanggalKomentar),
                   style: const TextStyle(
@@ -1158,7 +1215,6 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
     );
   }
 
-  // Fungsi format tanggal
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }

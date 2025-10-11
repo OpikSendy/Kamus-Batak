@@ -1,11 +1,9 @@
 // lib/service/supabase_service.dart
 
 import 'dart:io';
-
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../models/komentar.dart';
 
 class SupabaseService {
@@ -22,11 +20,28 @@ class SupabaseService {
     }
   }
 
+  /// Mengambil data yang sudah divalidasi (PERBAIKAN)
+  Future<List<Map<String, dynamic>>> fetchValidatedData(String table) async {
+    try {
+      final response = await _supabase
+          .from(table)
+          .select()
+          .eq('is_validated', true)
+          .order('created_at', ascending: false);
+
+      print("Fetched validated data from $table: ${response.length} items");
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print("Error fetching validated data from $table: $e");
+      rethrow;
+    }
+  }
+
   /// Mengambil data dengan kondisi tertentu
   Future<List<Map<String, dynamic>>> fetchDataWithCondition(
       String table,
       String column,
-      dynamic value // Menerima dynamic untuk ID atau nilai lainnya
+      dynamic value
       ) async {
     try {
       final response = await _supabase
@@ -61,11 +76,13 @@ class SupabaseService {
   /// Menambahkan data baru
   Future<Map<String, dynamic>?> insertData(String table, Map<String, dynamic> data) async {
     try {
+      print("Inserting data to $table: $data");
       final response = await _supabase
           .from(table)
           .insert(data)
           .select()
           .single();
+      print("Insert successful: $response");
       return response;
     } catch (e) {
       print("Error inserting data to $table: $e");
@@ -77,7 +94,7 @@ class SupabaseService {
   Future<void> updateData(
       String table,
       String idField,
-      dynamic idValue, // Ubah ke dynamic
+      dynamic idValue,
       Map<String, dynamic> data
       ) async {
     try {
@@ -92,7 +109,7 @@ class SupabaseService {
   }
 
   /// Menghapus data
-  Future<void> deleteData(String table, String idField, dynamic idValue) async { // Ubah ke dynamic
+  Future<void> deleteData(String table, String idField, dynamic idValue) async {
     try {
       await _supabase
           .from(table)
@@ -100,23 +117,6 @@ class SupabaseService {
           .eq(idField, idValue);
     } catch (e) {
       print("Error deleting data from $table: $e");
-      rethrow;
-    }
-  }
-
-  /// Menghapus multiple data
-  Future<void> deleteMultipleData(
-      String table,
-      String idField,
-      List<dynamic> idValues // Ubah ke List<dynamic>
-      ) async {
-    try {
-      await _supabase
-          .from(table)
-          .delete()
-          .eq(idField, idValues);
-    } catch (e) {
-      print("Error deleting multiple data from $table: $e");
       rethrow;
     }
   }
@@ -160,7 +160,6 @@ class SupabaseService {
         print("Warning: Failed to delete temporary file: $e");
       }
 
-
       return publicUrl;
     } catch (e) {
       print("Error uploading foto: $e");
@@ -168,28 +167,8 @@ class SupabaseService {
     }
   }
 
-  /// Upload multiple foto
-  Future<List<String>> uploadMultipleFoto(
-      List<String> filePaths,
-      String bucketName
-      ) async {
-    try {
-      List<String> urls = [];
-
-      for (String filePath in filePaths) {
-        final url = await uploadFoto(filePath, bucketName);
-        urls.add(url);
-      }
-
-      return urls;
-    } catch (e) {
-      print("Error uploading multiple foto: $e");
-      throw Exception("Gagal upload multiple foto: ${e.toString()}");
-    }
-  }
-
   /// Update foto di record tertentu
-  Future<void> updateFoto(String table, String idColumn, dynamic idValue, String fotoUrl) async { // Ubah ke dynamic
+  Future<void> updateFoto(String table, String idColumn, dynamic idValue, String fotoUrl) async {
     try {
       await _supabase
           .from(table)
@@ -198,31 +177,6 @@ class SupabaseService {
     } catch (e) {
       print("Error updating foto in $table: $e");
       throw Exception("Gagal update data: ${e.toString()}");
-    }
-  }
-
-  /// Hapus foto dari storage
-  Future<void> deleteFoto(String bucketName, String fileName) async {
-    try {
-      final bucket = _supabase.storage.from(bucketName);
-      await bucket.remove([fileName]);
-    } catch (e) {
-      print("Error deleting foto from storage: $e");
-      throw Exception("Gagal hapus foto: ${e.toString()}");
-    }
-  }
-
-  /// Get count data dari tabel
-  Future<int> getDataCount(String table) async {
-    try {
-      final response = await _supabase
-          .from(table)
-          .select('count(*)')
-          .single();
-      return response['count'] ?? 0;
-    } catch (e) {
-      print("Error getting count from $table: $e");
-      return 0;
     }
   }
 
@@ -237,21 +191,7 @@ class SupabaseService {
     }
   }
 
-  /// Get current user info (jika menggunakan auth)
-  User? getCurrentUser() {
-    return _supabase.auth.currentUser;
-  }
-
-  /// Sign out user (jika menggunakan auth)
-  Future<void> signOut() async {
-    try {
-      await _supabase.auth.signOut();
-    } catch (e) {
-      print("Error signing out: $e");
-      rethrow;
-    }
-  }
-
+  /// Fetch approved comments
   Future<List<Komentar>> fetchApprovedComments({
     required int itemId,
     required String itemType,
@@ -262,7 +202,7 @@ class SupabaseService {
           .select('*')
           .eq('item_id', itemId)
           .eq('item_type', itemType)
-          .eq('is_approved', true) // Hanya ambil komentar yang sudah disetujui
+          .eq('is_approved', true)
           .order('tanggal_komentar', ascending: false);
 
       if (response != null) {
@@ -276,10 +216,9 @@ class SupabaseService {
     }
   }
 
-  // Fungsi untuk mengirim komentar baru
+  /// Add comment
   Future<void> addComment(Komentar komentar) async {
     try {
-      // Supabase akan mengabaikan 'id' jika tabel disetel auto-increment
       await _supabase.from('komentar').insert(komentar.toJson());
     } catch (e) {
       print('Error adding comment: $e');

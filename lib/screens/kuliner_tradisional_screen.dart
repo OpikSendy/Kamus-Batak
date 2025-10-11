@@ -1,15 +1,11 @@
-import 'dart:io';
+// lib/screens/kuliner_tradisional_screen.dart
+// UPDATE: Tambahkan FloatingActionButton untuk menambah kuliner
 
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:kbb/models/kuliner_tradisional.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import '../viewmodel/kuliner_tradisional_viewmodel.dart';
-import '../viewmodel/komentar_viewmodel.dart'; // Pastikan ini diimpor
-import '../models/komentar.dart'; // Pastikan ini diimpor
+import 'add/add_kuliner_tradisional_screen.dart';
 
 class KulinerTradisionalDetailScreen extends StatefulWidget {
   const KulinerTradisionalDetailScreen({super.key});
@@ -19,38 +15,21 @@ class KulinerTradisionalDetailScreen extends StatefulWidget {
 }
 
 class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
-  // Variabel untuk pencarian dan filter, diaktifkan kembali
   String _searchQuery = '';
   String _selectedFilter = 'Semua';
-
-  // Variabel Komentar tidak diperlukan di sini karena ini adalah halaman daftar.
-  // Komentar akan berada di halaman detail kuliner tunggal.
-  // TextEditingController _commentController = TextEditingController();
-  // TextEditingController _nameController = TextEditingController();
-  // late KomentarViewModel _komentarViewModel;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Ambil sukuId untuk mengambil daftar kuliner berdasarkan suku
       final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
       if (sukuId != null) {
-        // Panggil fetchKulinerListBySukuId untuk mendapatkan daftar kuliner
         Provider.of<KulinerTradisionalViewModel>(context, listen: false)
             .fetchKulinerListBySukuId(sukuId);
       }
     });
   }
 
-  @override
-  void dispose() {
-    // _commentController.dispose(); // Hapus karena tidak lagi di sini
-    // _nameController.dispose(); // Hapus karena tidak lagi di sini
-    super.dispose();
-  }
-
-  // Fungsi snackbar (tetap berguna)
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -62,7 +41,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // sukuId tetap diperlukan untuk fetching awal
     final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
 
     return Scaffold(
@@ -82,7 +60,7 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
               ),
               flexibleSpace: FlexibleSpaceBar(
                 title: const Text(
-                  "Kuliner Tradisional", // Judul untuk daftar
+                  "Kuliner Tradisional",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -93,7 +71,7 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                   fit: StackFit.expand,
                   children: [
                     Image.network(
-                      'https://example.com/kuliner_background.jpg', // Gambar background statis
+                      'https://example.com/kuliner_background.jpg',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
@@ -152,9 +130,8 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                 ),
               ),
               actions: [
-                // Mengaktifkan kembali fitur pencarian di AppBar
                 Container(
-                  width: 140, // Sesuaikan lebar agar tidak terlalu sempit
+                  width: 140,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: TextField(
                     onChanged: (value) {
@@ -172,7 +149,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     ),
                   ),
                 ),
-                // Mengaktifkan kembali tombol filter
                 IconButton(
                   icon: const Icon(Icons.filter_list, color: Colors.white),
                   onPressed: () {
@@ -185,7 +161,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
         },
         body: Consumer<KulinerTradisionalViewModel>(
           builder: (context, viewModel, child) {
-            // Logika filter dan pencarian untuk daftar kuliner
             final filteredList = viewModel.kulinerList.where((kuliner) {
               final matchesSearch = kuliner.nama.toLowerCase().contains(_searchQuery.toLowerCase());
               final matchesFilter = _selectedFilter == 'Semua' || kuliner.jenis.toLowerCase() == _selectedFilter.toLowerCase();
@@ -229,7 +204,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        // Coba ambil data lagi
                         if (sukuId != null) {
                           Provider.of<KulinerTradisionalViewModel>(context, listen: false)
                               .fetchKulinerListBySukuId(sukuId);
@@ -266,13 +240,43 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     Text(
                       _searchQuery.isNotEmpty || _selectedFilter != 'Semua'
                           ? "Coba sesuaikan pencarian atau filter Anda."
-                          : "Coba periksa kembali nanti.",
+                          : "Belum ada kuliner. Tambahkan yang pertama!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
                       ),
                     ),
+                    if (_searchQuery.isEmpty && _selectedFilter == 'Semua') ...[
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          if (sukuId != null) {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddKulinerTradisionalScreen(),
+                                settings: RouteSettings(arguments: sukuId),
+                              ),
+                            );
+                            if (mounted) {
+                              Provider.of<KulinerTradisionalViewModel>(context, listen: false)
+                                  .fetchKulinerListBySukuId(sukuId);
+                            }
+                          }
+                        },
+                        icon: Icon(Icons.add, color: Colors.white),
+                        label: Text('Tambah Kuliner Pertama'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange[800],
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -325,18 +329,16 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     Expanded(
                       child: ListView.builder(
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 16.0),
+                        padding: const EdgeInsets.only(bottom: 80.0),
                         itemCount: filteredList.length,
                         itemBuilder: (context, index) {
                           final kuliner = filteredList[index];
-                          // Membungkus _buildKulinerCard dengan GestureDetector
-                          // agar bisa dinavigasi ke halaman detail
                           return GestureDetector(
                             onTap: () {
-                              // Navigasi ke halaman detail kuliner spesifik
-                              Navigator.pushNamed(context,
-                                '/kuliner-tradisional-single-detail', // Ganti dengan rute detail kuliner tunggal
-                                arguments: kuliner.id, // Kirim ID kuliner sebagai argumen),
+                              Navigator.pushNamed(
+                                context,
+                                '/kuliner-tradisional-single-detail',
+                                arguments: kuliner.id,
                               );
                             },
                             child: _buildKulinerCard(context, kuliner),
@@ -351,11 +353,38 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
           },
         ),
       ),
+      floatingActionButton: sukuId != null
+          ? FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddKulinerTradisionalScreen(),
+              settings: RouteSettings(arguments: sukuId),
+            ),
+          );
+
+          // Refresh list setelah kembali
+          if (mounted) {
+            Provider.of<KulinerTradisionalViewModel>(context, listen: false)
+                .fetchKulinerListBySukuId(sukuId);
+          }
+        },
+        backgroundColor: Colors.orange[800],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Tambah Kuliner',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      )
+          : null,
     );
   }
 
-  // --- Widget untuk membangun kartu kuliner (sama seperti sebelumnya) ---
-  Widget _buildKulinerCard(BuildContext context, KulinerTradisional kuliner) {
+  Widget _buildKulinerCard(BuildContext context, kuliner) {
     Color tagColor = kuliner.jenis == 'makanan' ? Colors.green[700]! : Colors.blue[700]!;
     String tagText = kuliner.jenis == 'makanan' ? 'MAKANAN KHAS' : 'MINUMAN KHAS';
 
@@ -368,14 +397,12 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Kuliner image with tag
           Stack(
             children: [
-              // Image
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
-                child: Hero( // Tambahkan Hero Widget untuk animasi transisi gambar
-                  tag: 'kuliner-image-${kuliner.id}', // Tag unik untuk setiap kuliner
+                child: Hero(
+                  tag: 'kuliner-image-${kuliner.id}',
                   child: Image.network(
                     kuliner.foto,
                     width: double.infinity,
@@ -413,8 +440,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                   ),
                 ),
               ),
-
-              // Tag
               Positioned(
                 top: 16,
                 left: 16,
@@ -434,8 +459,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                   ),
                 ),
               ),
-
-              // Gradient overlay on bottom for better text visibility
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -454,8 +477,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                   ),
                 ),
               ),
-
-              // Title on image
               Positioned(
                 bottom: 12,
                 left: 16,
@@ -478,8 +499,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
               ),
             ],
           ),
-
-          // Description (diubah sedikit agar tombol "Lihat Resep" berfungsi)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -511,8 +530,8 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     height: 1.5,
                     color: Colors.grey[800],
                   ),
-                  maxLines: 3, // Batasi deskripsi di daftar
-                  overflow: TextOverflow.ellipsis, // Tambahkan ellipsis jika terlalu panjang
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16.0),
                 Row(
@@ -523,14 +542,12 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 16.0),
-                // Tombol "Lihat Resep" yang sudah berfungsi untuk halaman daftar
                 OutlinedButton(
                   onPressed: () {
-                    // Navigasi ke halaman detail kuliner spesifik
                     Navigator.pushNamed(
                       context,
-                      '/kuliner-tradisional-single-detail', // Ganti dengan rute detail kuliner tunggal
-                      arguments: kuliner.id, // Kirim ID kuliner sebagai argumen
+                      '/kuliner-tradisional-single-detail',
+                      arguments: kuliner.id,
                     );
                   },
                   style: OutlinedButton.styleFrom(
@@ -544,13 +561,13 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.info_outline, // Ganti ikon menjadi info atau detail
+                        Icons.info_outline,
                         size: 18,
                         color: Colors.orange[800],
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Lihat Detail', // Ubah teks menjadi "Lihat Detail"
+                        'Lihat Detail',
                         style: TextStyle(
                           color: Colors.orange[800],
                           fontWeight: FontWeight.bold,
@@ -567,7 +584,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
     );
   }
 
-  // --- Widget-widget pembantu lainnya (seperti sebelumnya) ---
   Widget _buildInfoChip(IconData icon, String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -598,7 +614,6 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
     );
   }
 
-  // Dialog filter
   void _showFilterDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -653,651 +668,5 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
         );
       },
     );
-  }
-
-// Hapus _showResep dari sini, karena itu akan ada di halaman detail tunggal.
-// Demikian juga _buildFilterOption dan _showSearchDialog jika tidak digunakan di sini.
-// Untuk _showResep, kita akan memindahkannya ke halaman detail spesifik.
-}
-
-
-// --- Halaman Detail Kuliner Tunggal (Baru) ---
-// Anda perlu membuat file baru, misalnya: lib/screens/kuliner_tradisional_single_detail_screen.dart
-// Salin semua kode dari KulinerTradisionalDetailScreen Anda yang sebelumnya untuk detail tunggal ke file ini.
-// Pastikan untuk mengganti nama class menjadi KulinerTradisionalSingleDetailScreen.
-
-// lib/screens/kuliner_tradisional_single_detail_screen.dart
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../models/kuliner_tradisional.dart';
-// import '../viewmodel/kuliner_tradisional_viewmodel.dart';
-// import '../viewmodel/komentar_viewmodel.dart';
-// import '../models/komentar.dart';
-
-class KulinerTradisionalSingleDetailScreen extends StatefulWidget {
-  const KulinerTradisionalSingleDetailScreen({super.key});
-
-  @override
-  _KulinerTradisionalSingleDetailScreenState createState() => _KulinerTradisionalSingleDetailScreenState();
-}
-
-class _KulinerTradisionalSingleDetailScreenState extends State<KulinerTradisionalSingleDetailScreen> {
-  final TextEditingController _commentController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-
-  late KomentarViewModel _komentarViewModel;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final kulinerId = ModalRoute.of(context)?.settings.arguments as int?;
-      if (kulinerId != null) {
-        // Panggil fetchKulinerDetail untuk detail kuliner tunggal
-        Provider.of<KulinerTradisionalViewModel>(context, listen: false).fetchKulinerDetail(kulinerId);
-
-        _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
-        _komentarViewModel.fetchComments(itemId: kulinerId, itemType: 'kuliner');
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _commentController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-      ),
-    );
-  }
-
-  void _submitComment({required int itemId, required String itemType}) async {
-    if (_commentController.text.trim().isEmpty) {
-      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
-      return;
-    }
-
-    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
-    final String komentarText = _commentController.text.trim();
-
-    try {
-      await _komentarViewModel.addComment(
-        itemId: itemId,
-        itemType: itemType,
-        namaAnonim: namaAnonim,
-        komentarText: komentarText,
-      );
-      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
-      _commentController.clear();
-      _nameController.clear();
-    } catch (e) {
-      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final kulinerId = ModalRoute.of(context)?.settings.arguments as int?;
-    if (kulinerId == null) {
-      return Scaffold(
-        body: Center(
-          child: Text('Error: ID Kuliner tidak valid.'),
-        ),
-      );
-    }
-
-    return Consumer<KulinerTradisionalViewModel>(
-      builder: (context, kulinerViewModel, child) {
-        final KulinerTradisional? currentKuliner = kulinerViewModel.currentKulinerDetail;
-
-        if (kulinerViewModel.isLoading) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red[800]!)),
-                  SizedBox(height: 20),
-                  Text(
-                    'Memuat informasi kuliner tradisional...',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        } else if (kulinerViewModel.errorMessage != null || currentKuliner == null) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  SizedBox(height: 16),
-                  Text(
-                    kulinerViewModel.errorMessage ?? 'Kuliner tidak ditemukan atau terjadi kesalahan.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Provider.of<KulinerTradisionalViewModel>(context, listen: false).fetchKulinerDetail(kulinerId);
-                      _komentarViewModel.fetchComments(itemId: kulinerId, itemType: 'kuliner');
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red[800]),
-                    child: Text('Coba Lagi', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return Scaffold(
-          backgroundColor: Colors.grey[100],
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  expandedHeight: 250.0,
-                  pinned: true,
-                  backgroundColor: Colors.red[800],
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    title: Text(
-                      currentKuliner.nama,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 3.0,
-                            color: Colors.black.withOpacity(0.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Hero(
-                          tag: 'kuliner-image-${currentKuliner.id}',
-                          child: Image.network(
-                            currentKuliner.foto,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                        : null,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[800]!),
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Icon(Icons.broken_image, size: 64, color: Colors.grey[600]),
-                              );
-                            },
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.1),
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: const [],
-                ),
-              ];
-            },
-            body: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildKulinerDetailContent(currentKuliner), // Konten detail kuliner
-
-                    const SizedBox(height: 24),
-
-                    // Bagian Komentar
-                    const Divider(height: 32, thickness: 1),
-                    Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.red[800],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'KOMENTAR',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildCommentForm(currentKuliner.id, 'kuliner'),
-
-                    const SizedBox(height: 24),
-
-                    Consumer<KomentarViewModel>(
-                      builder: (context, komentarViewModel, child) {
-                        if (komentarViewModel.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (komentarViewModel.errorMessage != null) {
-                          return Center(
-                            child: Text(
-                              'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          );
-                        }
-                        if (komentarViewModel.comments.isEmpty) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text(
-                                'Belum ada komentar yang disetujui.',
-                                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-                              ),
-                            ),
-                          );
-                        }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: komentarViewModel.comments.length,
-                          itemBuilder: (context, index) {
-                            final komentar = komentarViewModel.comments[index];
-                            return _buildCommentCard(komentar);
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // --- Widget-widget pembantu di halaman detail ---
-  Widget _buildKulinerDetailContent(KulinerTradisional kuliner) {
-    Color tagColor = kuliner.jenis == 'makanan' ? Colors.green[700]! : Colors.blue[700]!;
-    String tagText = kuliner.jenis == 'makanan' ? 'MAKANAN KHAS' : 'MINUMAN KHAS';
-
-    return Card(
-      elevation: 3.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  kuliner.jenis == 'makanan' ? Icons.restaurant_menu : Icons.local_bar,
-                  size: 18,
-                  color: tagColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  kuliner.jenis == 'makanan' ? 'Makanan Tradisional' : 'Minuman Tradisional',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: tagColor,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: tagColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: tagColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    tagText,
-                    style: TextStyle(
-                      color: tagColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12.0),
-            Text(
-              kuliner.deskripsi,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              children: [
-                _buildInfoChip(Icons.star, kuliner.rating, Colors.amber),
-                const SizedBox(width: 12),
-                _buildInfoChip(Icons.access_time, kuliner.waktu, Colors.blue[700]!),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            OutlinedButton(
-              onPressed: () {
-                _showResep(context, kuliner);
-              },
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: BorderSide(color: Colors.orange[800]!),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.menu_book,
-                    size: 18,
-                    color: Colors.orange[800],
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Lihat Resep',
-                    style: TextStyle(
-                      color: Colors.orange[800],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showResep(BuildContext context, KulinerTradisional kuliner) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red[700],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Resep ${kuliner.nama}",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    kuliner.resep,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[700],
-                      minimumSize: const Size(double.infinity, 45),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                        "Tutup",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        )
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommentForm(int itemId, String itemType) {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tinggalkan Komentar Anda',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Nama (opsional)',
-                hintText: 'Misal: Anonim',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                prefixIcon: const Icon(Icons.person_outline),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _commentController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'Komentar Anda',
-                hintText: 'Tulis komentar Anda di sini...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                alignLabelWithHint: true,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
-                icon: const Icon(Icons.send),
-                label: const Text('Kirim Komentar'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[800],
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommentCard(Komentar komentar) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 1.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
-                const SizedBox(width: 8),
-                Text(
-                  komentar.namaAnonim,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.grey[900],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _formatDate(komentar.tanggalKomentar),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              komentar.komentarText,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[800],
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -1,94 +1,292 @@
+// lib/viewmodel/kuliner_tradisional_viewmodel.dart
+
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../repository/kuliner_tradisional_repository.dart';
 import '../models/kuliner_tradisional.dart';
 
 class KulinerTradisionalViewModel extends ChangeNotifier {
   final KulinerTradisionalRepository _repository = KulinerTradisionalRepository();
-
-  List<KulinerTradisional> _kulinerList = []; // Untuk daftar kuliner (misal di halaman daftar utama)
-  KulinerTradisional? _currentKulinerDetail; // Untuk detail kuliner tunggal di halaman ini
-
+  List<KulinerTradisional> _kulinerList = [];
+  KulinerTradisional? _currentKulinerDetail;
   bool _isLoading = false;
+  bool _isSubmitting = false;
   String? _errorMessage;
+  String? _successMessage;
 
-  // Getters
   List<KulinerTradisional> get kulinerList => _kulinerList;
   KulinerTradisional? get currentKulinerDetail => _currentKulinerDetail;
   bool get isLoading => _isLoading;
+  bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
 
-  // --- Metode untuk Halaman Daftar Kuliner ---
-  // Mengambil daftar kuliner berdasarkan sukuId
+  /// Mengambil semua data kuliner yang sudah validated berdasarkan suku
   Future<void> fetchKulinerListBySukuId(int sukuId) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    _setLoading(true);
+    _clearMessages();
+
     try {
       _kulinerList = await _repository.getKulinerBySukuId(sukuId);
     } catch (e) {
-      _errorMessage = "Gagal memuat daftar kuliner: $e";
+      _setError("Error fetching kuliner list: $e");
       print("Error fetching kuliner list: $e");
-      _kulinerList = [];
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
-  // --- Metode untuk Halaman Detail Kuliner (Yang Anda Perlukan Sekarang) ---
-  // Mengambil detail satu kuliner berdasarkan kulinerId
+  /// Mengambil data kuliner berdasarkan ID (untuk detail page)
   Future<void> fetchKulinerDetail(int kulinerId) async {
-    _isLoading = true;
-    _errorMessage = null;
-    _currentKulinerDetail = null; // Reset detail sebelumnya
-    notifyListeners();
+    _setLoading(true);
+    _clearMessages();
+    _currentKulinerDetail = null;
+
     try {
-      // Pastikan ada metode getKulinerById di KulinerTradisionalRepository
       _currentKulinerDetail = await _repository.getKulinerById(kulinerId);
     } catch (e) {
-      _errorMessage = "Gagal memuat detail kuliner: $e";
+      _setError("Error fetching kuliner detail: $e");
       print("Error fetching kuliner detail: $e");
-      _currentKulinerDetail = null;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
-  // --- Metode untuk Manajemen Data (Add/Delete) ---
-  Future<void> addKuliner(KulinerTradisional kuliner) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  /// Submit kuliner baru oleh user (akan pending validation)
+  Future<bool> submitKulinerByUser({
+    required int sukuId,
+    required String jenis,
+    required String nama,
+    required File fotoFile,
+    required String deskripsi,
+    required String rating,
+    required String waktu,
+    required String resep,
+    required String bucketName,
+  }) async {
+    _setSubmitting(true);
+    _clearMessages();
+
     try {
-      await _repository.addKuliner(kuliner);
-      // Anda mungkin ingin memanggil fetchKulinerListBySukuId jika ini memengaruhi daftar
-      // atau fetchKulinerDetail jika Anda ingin menampilkan detail yang baru ditambahkan.
-      // Untuk tujuan tampilan detail, ini mungkin tidak langsung relevan.
+      // Validasi nama
+      if (nama.trim().isEmpty) {
+        throw Exception("Nama kuliner tidak boleh kosong");
+      }
+
+      // Check jika nama sudah ada
+      final exists = await _repository.isKulinerNameExists(nama);
+      if (exists) {
+        throw Exception("Nama kuliner sudah ada dalam database");
+      }
+
+      // Upload foto
+      final fotoUrl = await _repository.uploadFoto(
+          fotoFile.path,
+          bucketName
+      );
+
+      // Create kuliner object
+      final newKuliner = KulinerTradisional(
+        sukuId: sukuId,
+        jenis: jenis,
+        nama: nama.trim(),
+        foto: fotoUrl,
+        deskripsi: deskripsi.trim(),
+        rating: rating,
+        waktu: waktu,
+        resep: resep.trim(),
+        inputSource: 'user',
+        isValidated: false,
+        createdAt: DateTime.now(),
+      );
+
+      // Submit ke database
+      await _repository.addKulinerByUser(newKuliner);
+
+      _setSuccess(
+          "Data kuliner berhasil dikirim! "
+              "Menunggu validasi dari admin."
+      );
+
+      return true;
     } catch (e) {
-      _errorMessage = "Gagal menambahkan kuliner: $e";
-      print("Error adding kuliner: $e");
+      _setError("Gagal mengirim data: ${e.toString()}");
+      print("Error submitting kuliner: $e");
+      return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setSubmitting(false);
     }
   }
 
+  /// Menambahkan kuliner baru oleh admin
+  Future<void> addKulinerByAdmin(KulinerTradisional kuliner, {File? fotoFile, String? bucketName}) async {
+    _setSubmitting(true);
+    _clearMessages();
+
+    try {
+      String fotoUrl = kuliner.foto;
+
+      // Upload foto jika ada
+      if (fotoFile != null && bucketName != null) {
+        fotoUrl = await _repository.uploadFoto(fotoFile.path, bucketName);
+      }
+
+      final newKuliner = kuliner.copyWith(
+        newFoto: fotoUrl,
+        inputSource: 'admin',
+        isValidated: true,
+      );
+
+      await _repository.addKulinerByAdmin(newKuliner);
+
+      _setSuccess("Kuliner berhasil ditambahkan");
+    } catch (e) {
+      _setError("Error adding kuliner: $e");
+      print("Error adding kuliner: $e");
+      rethrow;
+    } finally {
+      _setSubmitting(false);
+    }
+  }
+
+  /// Mengupdate data kuliner
+  Future<void> updateKuliner(KulinerTradisional updatedKuliner) async {
+    try {
+      await _repository.updateKuliner(updatedKuliner);
+
+      // Update lokal
+      final index = _kulinerList.indexWhere((kuliner) => kuliner.id == updatedKuliner.id);
+      if (index != -1) {
+        _kulinerList[index] = updatedKuliner;
+        notifyListeners();
+      }
+
+      // Update detail jika sedang melihat detail kuliner ini
+      if (_currentKulinerDetail?.id == updatedKuliner.id) {
+        _currentKulinerDetail = updatedKuliner;
+        notifyListeners();
+      }
+    } catch (e) {
+      _setError("Error updating kuliner: $e");
+      print("Error updating kuliner: $e");
+      rethrow;
+    }
+  }
+
+  /// Menghapus kuliner
   Future<void> deleteKuliner(int kulinerId, int sukuId) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
     try {
       await _repository.deleteKuliner(kulinerId);
-      // Setelah menghapus, refresh daftar kuliner terkait suku ID
-      // Ini akan relevan jika Anda kembali ke halaman daftar.
+
+      _kulinerList.removeWhere((kuliner) => kuliner.id == kulinerId);
+      notifyListeners();
+
       await fetchKulinerListBySukuId(sukuId);
     } catch (e) {
-      _errorMessage = "Gagal menghapus kuliner: $e";
+      _setError("Error deleting kuliner: $e");
       print("Error deleting kuliner: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      rethrow;
     }
+  }
+
+  /// Mengupdate foto kuliner
+  Future<void> updateFoto(int id, File file, String bucketName) async {
+    try {
+      final fotoUrl = await _repository.uploadFoto(file.path, bucketName);
+      await _repository.updateFoto(id, fotoUrl);
+
+      final index = _kulinerList.indexWhere((kuliner) => kuliner.id == id);
+      if (index != -1) {
+        _kulinerList[index] = _kulinerList[index].copyWith(newFoto: fotoUrl);
+        notifyListeners();
+      }
+
+      // Update detail jika sedang melihat detail kuliner ini
+      if (_currentKulinerDetail?.id == id) {
+        _currentKulinerDetail = _currentKulinerDetail!.copyWith(newFoto: fotoUrl);
+        notifyListeners();
+      }
+    } catch (e) {
+      _setError("Error updating foto: $e");
+      print("Error updating foto: $e");
+      rethrow;
+    }
+  }
+
+  /// Mencari kuliner berdasarkan nama (local search)
+  List<KulinerTradisional> searchKuliner(String query) {
+    if (query.isEmpty) return _kulinerList;
+
+    return _kulinerList.where((kuliner) =>
+        kuliner.nama.toLowerCase().contains(query.toLowerCase())
+    ).toList();
+  }
+
+  /// Mencari kuliner dari server
+  Future<List<KulinerTradisional>> searchKulinerFromServer(String query) async {
+    try {
+      return await _repository.searchKulinerByName(query);
+    } catch (e) {
+      _setError("Error searching kuliner: $e");
+      return [];
+    }
+  }
+
+  /// Mendapatkan kuliner berdasarkan ID (local)
+  KulinerTradisional? getKulinerById(int id) {
+    try {
+      return _kulinerList.firstWhere((kuliner) => kuliner.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Helper methods untuk state management
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setSubmitting(bool submitting) {
+    _isSubmitting = submitting;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    _successMessage = null;
+    notifyListeners();
+  }
+
+  void _setSuccess(String message) {
+    _successMessage = message;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _clearMessages() {
+    _errorMessage = null;
+    _successMessage = null;
+  }
+
+  void clearMessages() {
+    _clearMessages();
+    notifyListeners();
+  }
+
+  /// Clear data
+  void clearData() {
+    _kulinerList.clear();
+    _currentKulinerDetail = null;
+    _errorMessage = null;
+    _successMessage = null;
+    _isLoading = false;
+    _isSubmitting = false;
+    notifyListeners();
+  }
+
+  /// Refresh data berdasarkan suku
+  Future<void> refreshData(int sukuId) async {
+    await fetchKulinerListBySukuId(sukuId);
   }
 }

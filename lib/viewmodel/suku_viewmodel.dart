@@ -1,5 +1,5 @@
+// lib/viewmodel/suku_viewmodel.dart
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../repository/suku_repository.dart';
 import '../models/suku.dart';
@@ -8,16 +8,20 @@ class SukuViewModel extends ChangeNotifier {
   final SukuRepository _repository = SukuRepository();
   List<Suku> _sukuList = [];
   bool _isLoading = false;
+  bool _isSubmitting = false;
   String? _errorMessage;
+  String? _successMessage;
 
   List<Suku> get sukuList => _sukuList;
   bool get isLoading => _isLoading;
+  bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
 
-  /// Mengambil semua data suku
+  /// Mengambil semua data suku yang sudah validated
   Future<void> fetchSukuList() async {
     _setLoading(true);
-    _clearError();
+    _clearMessages();
 
     try {
       _sukuList = await _repository.getAllSuku();
@@ -30,47 +34,114 @@ class SukuViewModel extends ChangeNotifier {
   }
 
   /// Mengambil data suku berdasarkan ID
-  Future<void> fetchSukuListById(int sukuId) async {
-    _setLoading(true);
-    _clearError();
-
+  Future<Suku?> fetchSukuById(int sukuId) async {
     try {
-      _sukuList = await _repository.getAllSuku();
-      _sukuList = _sukuList.where((suku) => suku.id == sukuId).toList();
+      return await _repository.getSukuById(sukuId);
     } catch (e) {
-      _setError("Error fetching suku list by ID: $e");
-      print("Error fetching suku list by ID: $e");
-    } finally {
-      _setLoading(false);
+      _setError("Error fetching suku by ID: $e");
+      print("Error fetching suku by ID: $e");
+      return null;
     }
   }
 
-  /// Menambahkan suku baru
-  Future<void> addSuku(Suku suku) async {
+  /// Submit suku baru oleh user (akan pending validation)
+  Future<bool> submitSukuByUser({
+    required String nama,
+    required File fotoFile,
+    required String bucketName,
+  }) async {
+    _setSubmitting(true);
+    _clearMessages();
+
     try {
-      await _repository.addSuku(suku);
-      await fetchSukuList(); // Refresh data setelah menambah
+      // Validasi nama
+      if (nama.trim().isEmpty) {
+        throw Exception("Nama suku tidak boleh kosong");
+      }
+
+      // Check jika nama sudah ada
+      final exists = await _repository.isSukuNameExists(nama);
+      if (exists) {
+        throw Exception("Nama suku sudah ada dalam database");
+      }
+
+      // Upload foto
+      final fotoUrl = await _repository.uploadFoto(
+          fotoFile.path,
+          bucketName
+      );
+
+      // Create suku object
+      final newSuku = Suku(
+        nama: nama.trim(),
+        foto: fotoUrl,
+        inputSource: 'user',
+        isValidated: false,
+        createdAt: DateTime.now(),
+      );
+
+      // Submit ke database
+      await _repository.addSukuByUser(newSuku);
+
+      _setSuccess(
+          "Data suku berhasil dikirim! "
+              "Menunggu validasi dari admin."
+      );
+
+      return true;
+    } catch (e) {
+      _setError("Gagal mengirim data: ${e.toString()}");
+      print("Error submitting suku: $e");
+      return false;
+    } finally {
+      _setSubmitting(false);
+    }
+  }
+
+  /// Menambahkan suku baru oleh admin
+  Future<void> addSukuByAdmin(Suku suku, {File? fotoFile, String? bucketName}) async {
+    _setSubmitting(true);
+    _clearMessages();
+
+    try {
+      String fotoUrl = suku.foto;
+
+      // Upload foto jika ada
+      if (fotoFile != null && bucketName != null) {
+        fotoUrl = await _repository.uploadFoto(fotoFile.path, bucketName);
+      }
+
+      final newSuku = suku.copyWith(
+        newFoto: fotoUrl,
+        inputSource: 'admin',
+        isValidated: true,
+      );
+
+      await _repository.addSukuByAdmin(newSuku);
+      await fetchSukuList();
+
+      _setSuccess("Suku berhasil ditambahkan");
     } catch (e) {
       _setError("Error adding suku: $e");
       print("Error adding suku: $e");
       rethrow;
+    } finally {
+      _setSubmitting(false);
     }
   }
 
   /// Mengupdate data suku
   Future<void> updateSuku(Suku updatedSuku) async {
     try {
-      // Note: Anda perlu menambahkan method updateSuku di repository
-      // await _repository.updateSuku(updatedSuku);
+      await _repository.updateSuku(updatedSuku);
 
-      // Sementara, update lokal dulu
+      // Update lokal
       final index = _sukuList.indexWhere((suku) => suku.id == updatedSuku.id);
       if (index != -1) {
         _sukuList[index] = updatedSuku;
         notifyListeners();
       }
 
-      // Kemudian refresh dari server
       await fetchSukuList();
     } catch (e) {
       _setError("Error updating suku: $e");
@@ -80,15 +151,13 @@ class SukuViewModel extends ChangeNotifier {
   }
 
   /// Menghapus suku
-  Future<void> deleteSuku(String sukuId) async {
+  Future<void> deleteSuku(int sukuId) async {
     try {
       await _repository.deleteSuku(sukuId);
 
-      // Update lokal
-      _sukuList.removeWhere((suku) => suku.id.toString() == sukuId);
+      _sukuList.removeWhere((suku) => suku.id == sukuId);
       notifyListeners();
 
-      // Refresh dari server untuk memastikan konsistensi
       await fetchSukuList();
     } catch (e) {
       _setError("Error deleting suku: $e");
@@ -98,12 +167,11 @@ class SukuViewModel extends ChangeNotifier {
   }
 
   /// Mengupdate foto suku
-  Future<void> updateFoto(int id, File file, int sukuId, String bucketName) async {
+  Future<void> updateFoto(int id, File file, String bucketName) async {
     try {
       final fotoUrl = await _repository.uploadFoto(file.path, bucketName);
-      await _repository.updateFoto(id, fotoUrl, sukuId);
+      await _repository.updateFoto(id, fotoUrl);
 
-      // Update lokal
       final index = _sukuList.indexWhere((suku) => suku.id == id);
       if (index != -1) {
         _sukuList[index] = _sukuList[index].copyWith(newFoto: fotoUrl);
@@ -116,18 +184,7 @@ class SukuViewModel extends ChangeNotifier {
     }
   }
 
-  /// Mengupload foto tanpa mengupdate data suku
-  Future<String> uploadFoto(String filePath, String bucketName) async {
-    try {
-      return await _repository.uploadFoto(filePath, bucketName);
-    } catch (e) {
-      _setError("Error uploading foto: $e");
-      print("Error uploading foto: $e");
-      rethrow;
-    }
-  }
-
-  /// Mencari suku berdasarkan nama
+  /// Mencari suku berdasarkan nama (local search)
   List<Suku> searchSuku(String query) {
     if (query.isEmpty) return _sukuList;
 
@@ -136,7 +193,17 @@ class SukuViewModel extends ChangeNotifier {
     ).toList();
   }
 
-  /// Mendapatkan suku berdasarkan ID
+  /// Mencari suku dari server
+  Future<List<Suku>> searchSukuFromServer(String query) async {
+    try {
+      return await _repository.searchSukuByName(query);
+    } catch (e) {
+      _setError("Error searching suku: $e");
+      return [];
+    }
+  }
+
+  /// Mendapatkan suku berdasarkan ID (local)
   Suku? getSukuById(int id) {
     try {
       return _sukuList.firstWhere((suku) => suku.id == id);
@@ -151,24 +218,44 @@ class SukuViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setError(String error) {
-    _errorMessage = error;
+  void _setSubmitting(bool submitting) {
+    _isSubmitting = submitting;
     notifyListeners();
   }
 
-  void _clearError() {
-    _errorMessage = null;
+  void _setError(String error) {
+    _errorMessage = error;
+    _successMessage = null;
+    notifyListeners();
   }
 
-  /// Method untuk clear data (berguna saat logout atau reset)
+  void _setSuccess(String message) {
+    _successMessage = message;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _clearMessages() {
+    _errorMessage = null;
+    _successMessage = null;
+  }
+
+  void clearMessages() {
+    _clearMessages();
+    notifyListeners();
+  }
+
+  /// Clear data
   void clearData() {
     _sukuList.clear();
     _errorMessage = null;
+    _successMessage = null;
     _isLoading = false;
+    _isSubmitting = false;
     notifyListeners();
   }
 
-  /// Method untuk refresh data
+  /// Refresh data
   Future<void> refreshData() async {
     await fetchSukuList();
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kbb/models/submarga.dart';
+import 'package:kbb/screens/add/add_marga_screen.dart';
+import 'package:kbb/screens/add/add_submarga_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:kbb/viewmodel/submarga_viewmodel.dart';
 import 'package:kbb/viewmodel/marga_viewmodel.dart';
@@ -84,6 +87,123 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
     } catch (e) {
       _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
     }
+  }
+
+  // Tambahkan method baru untuk menampilkan detail submarga dalam dialog
+  void _showSubmargaDetailDialog(BuildContext context, Submarga submarga) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Image
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                child: submarga.foto.isNotEmpty
+                    ? Image.network(
+                  submarga.foto,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      color: Colors.grey[300],
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 64,
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  },
+                )
+                    : Container(
+                  height: 200,
+                  color: Colors.grey[300],
+                  child: Icon(
+                    Icons.person,
+                    size: 64,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.people, color: Colors.red[800], size: 24),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            submarga.nama,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Deskripsi',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      submarga.deskripsi,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        height: 1.5,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Close button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[800],
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Tutup',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -436,9 +556,9 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                 if (_expandedPanels.contains(marga.id)) {
                                   _expandedPanels.remove(marga.id);
                                 } else {
-                                  _expandedPanels.add(marga.id);
+                                  _expandedPanels.add(marga.id!);
                                   // Ketika panel dibuka, muat komentar untuk marga ini
-                                  _komentarViewModel.fetchComments(itemId: marga.id, itemType: 'marga');
+                                  _komentarViewModel.fetchComments(itemId: marga.id!, itemType: 'marga');
                                 }
                               });
                             },
@@ -525,7 +645,7 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                       SizedBox(height: 16),
 
                                       // Sub Marga Section
-                                      _buildSubmargaSection(context, marga.id),
+                                      _buildSubmargaSection(context, marga.id!, marga.nama),
 
                                       // --- Bagian Komentar ---
                                       const Divider(height: 32, thickness: 1),
@@ -554,7 +674,7 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                                       const SizedBox(height: 16),
 
                                       // Form untuk menambahkan komentar
-                                      _buildCommentForm(marga.id, 'marga'), // ID marga dan itemType 'marga'
+                                      _buildCommentForm(marga.id!, 'marga'), // ID marga dan itemType 'marga'
 
                                       const SizedBox(height: 24),
 
@@ -615,10 +735,34 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddMargaScreen(sukuId: sukuId),
+            ),
+          );
+
+          // Refresh list setelah kembali
+          if (mounted) {
+            Provider.of<MargaViewModel>(context, listen: false).fetchMargaList(sukuId);
+          }
+        },
+        backgroundColor: Colors.red[800],
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Tambah Marga',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildSubmargaSection(BuildContext context, int margaId) {
+  Widget _buildSubmargaSection(BuildContext context, int margaId, String margaNama) {
     return ChangeNotifierProvider(
       create: (_) => SubmargaViewModel()..fetchSubmargaList(margaId),
       child: Consumer<SubmargaViewModel>(
@@ -636,13 +780,48 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Sub Marga:",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Sub Marga:",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddSubmargaScreen(
+                              margaId: margaId,
+                              margaNama: margaNama,
+                            ),
+                          ),
+                        );
+
+                        // Refresh list setelah kembali
+                        if (mounted) {
+                          subMargaViewModel.fetchSubmargaList(margaId);
+                        }
+                      },
+                      icon: Icon(Icons.add, size: 18, color: Colors.red[800]),
+                      label: Text(
+                        'Tambah',
+                        style: TextStyle(color: Colors.red[800]),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.red[800]!),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 8),
                 Container(
@@ -652,12 +831,30 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: Text(
-                      "Tidak ada data sub marga tersedia.",
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Belum ada data sub marga tersedia.",
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Jadilah yang pertama menambahkan!",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -670,19 +867,62 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Sub Marga:",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          "Sub Marga:",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            "${subMargaViewModel.submargaList.length}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red[800],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "${subMargaViewModel.submargaList.length} sub marga",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                    TextButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddSubmargaScreen(
+                              margaId: margaId,
+                              margaNama: margaNama,
+                            ),
+                          ),
+                        );
+
+                        // Refresh list setelah kembali
+                        if (mounted) {
+                          subMargaViewModel.fetchSubmargaList(margaId);
+                        }
+                      },
+                      icon: Icon(Icons.add, size: 18, color: Colors.red[800]),
+                      label: Text(
+                        'Tambah',
+                        style: TextStyle(color: Colors.red[800]),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.red[800]!),
+                        ),
                       ),
                     ),
                   ],
@@ -703,13 +943,18 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.red[50],
-                          child: Text(
+                          backgroundImage: subMarga.foto.isNotEmpty
+                              ? NetworkImage(subMarga.foto)
+                              : null,
+                          child: subMarga.foto.isEmpty
+                              ? Text(
                             subMarga.nama[0].toUpperCase(),
                             style: TextStyle(
                               color: Colors.red[800],
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
+                          )
+                              : null,
                         ),
                         title: Text(
                           subMarga.nama,
@@ -717,15 +962,27 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        // trailing: Icon(Icons.arrow_forward_ios, size: 14),
+                        subtitle: Text(
+                          subMarga.deskripsi,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 14),
                         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         onTap: () {
-                          // Navigate to submarga detail
+                          // Optional: Navigate to submarga detail
                           // Navigator.pushNamed(
                           //   context,
                           //   '/submarga-detail',
                           //   arguments: subMarga.id,
                           // );
+
+                          // Atau tampilkan detail dalam dialog
+                          _showSubmargaDetailDialog(context, subMarga);
                         },
                       );
                     },

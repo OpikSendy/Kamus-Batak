@@ -1,16 +1,11 @@
-import 'dart:io';
+// lib/screens/suku_screen.dart - Responsive Version
 
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import 'package:kbb/viewmodel/suku_viewmodel.dart';
 import '../models/suku.dart';
-// Import KomentarViewModel dan Komentar model
-import '../viewmodel/komentar_viewmodel.dart'; // Sesuaikan path jika berbeda
-import '../models/komentar.dart'; // Sesuaikan path jika berbeda
+import '../viewmodel/komentar_viewmodel.dart';
+import '../models/komentar.dart';
 
 class SukuScreen extends StatefulWidget {
   const SukuScreen({super.key});
@@ -22,19 +17,14 @@ class SukuScreen extends StatefulWidget {
 class SukuScreenState extends State<SukuScreen> {
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-
-  // Tambahkan KomentarViewModel di sini
   late KomentarViewModel _komentarViewModel;
 
   @override
   void initState() {
     super.initState();
-    // Di initState, kita tidak bisa langsung mengakses Provider.of karena context belum sepenuhnya tersedia.
-    // Kita akan memanggil fetchComments setelah build selesai menggunakan WidgetsBinding.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
       if (sukuId != null) {
-        // Inisialisasi KomentarViewModel
         _komentarViewModel = Provider.of<KomentarViewModel>(context, listen: false);
         _komentarViewModel.fetchComments(itemId: sukuId, itemType: 'suku');
       }
@@ -48,7 +38,6 @@ class SukuScreenState extends State<SukuScreen> {
     super.dispose();
   }
 
-  // Fungsi untuk menampilkan snackbar
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -58,15 +47,15 @@ class SukuScreenState extends State<SukuScreen> {
     );
   }
 
-  // Fungsi untuk mengirim komentar
   void _submitComment({required int itemId, required String itemType}) async {
     if (_commentController.text.trim().isEmpty) {
       _showSnackBar('Komentar tidak boleh kosong!', isError: true);
       return;
     }
 
-    // Ambil nama dari controller, jika kosong gunakan 'Anonim'
-    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String namaAnonim = _nameController.text.trim().isEmpty
+        ? 'Anonim'
+        : _nameController.text.trim();
     final String komentarText = _commentController.text.trim();
 
     try {
@@ -78,8 +67,7 @@ class SukuScreenState extends State<SukuScreen> {
       );
       _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
       _commentController.clear();
-      _nameController.clear(); // Bersihkan nama juga jika mau
-      // Tidak perlu memuat ulang komentar disetujui karena komentar baru belum disetujui
+      _nameController.clear();
     } catch (e) {
       _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
     }
@@ -92,8 +80,11 @@ class SukuScreenState extends State<SukuScreen> {
       return _buildErrorScaffold('Error', 'ID Suku tidak valid');
     }
 
-    // Gunakan MultiProvider atau Consumer bertingkat jika SukuViewModel dan KomentarViewModel belum di root
-    // Di sini kita akan menggunakan Consumer bertingkat untuk demonstrasi
+    // Get screen size for responsive layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+    final crossAxisCount = isSmallScreen ? 2 : (screenWidth < 900 ? 3 : 4);
+
     return Consumer<SukuViewModel>(
       builder: (context, sukuViewModel, child) {
         if (sukuViewModel.isLoading) {
@@ -105,7 +96,7 @@ class SukuScreenState extends State<SukuScreen> {
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.red[800]!),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text(
                     'Memuat informasi suku...',
                     style: TextStyle(
@@ -128,27 +119,26 @@ class SukuScreenState extends State<SukuScreen> {
 
         return Scaffold(
           body: CustomScrollView(
-            physics: BouncingScrollPhysics(),
+            physics: const BouncingScrollPhysics(),
             slivers: [
               SliverAppBar(
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 pinned: true,
-                expandedHeight: 250.0,
+                expandedHeight: isSmallScreen ? 200.0 : 250.0,
                 backgroundColor: Colors.red[800],
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
                     suku.nama,
                     style: TextStyle(
                       color: Colors.white,
+                      fontSize: isSmallScreen ? 16 : 20,
                       fontWeight: FontWeight.bold,
                       shadows: [
                         Shadow(
-                          offset: Offset(0, 1),
+                          offset: const Offset(0, 1),
                           blurRadius: 3.0,
                           color: Colors.black.withOpacity(0.5),
                         ),
@@ -203,23 +193,19 @@ class SukuScreenState extends State<SukuScreen> {
                 ),
                 actions: [
                   IconButton(
-                    icon: Icon(Icons.share, color: Colors.white),
-                    onPressed: () {
-                      // Implementasi fitur berbagi
-                    },
+                    icon: const Icon(Icons.share, color: Colors.white),
+                    onPressed: () {},
                   ),
                   IconButton(
-                    icon: Icon(Icons.bookmark_border, color: Colors.white),
-                    onPressed: () {
-                      // Implementasi fitur bookmark/save
-                    },
+                    icon: const Icon(Icons.bookmark_border, color: Colors.white),
+                    onPressed: () {},
                   ),
                 ],
               ),
 
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -229,7 +215,7 @@ class SukuScreenState extends State<SukuScreen> {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.all(16.0),
+                          padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -237,7 +223,7 @@ class SukuScreenState extends State<SukuScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: Colors.red[100],
                                       borderRadius: BorderRadius.circular(8),
@@ -245,14 +231,15 @@ class SukuScreenState extends State<SukuScreen> {
                                     child: Icon(
                                       Icons.info_outline,
                                       color: Colors.red[800],
+                                      size: isSmallScreen ? 20 : 24,
                                     ),
                                   ),
-                                  SizedBox(width: 12),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       'Tentang ${suku.nama}',
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: isSmallScreen ? 16 : 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.grey[800],
                                       ),
@@ -260,11 +247,11 @@ class SukuScreenState extends State<SukuScreen> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Text(
                                 'Suku ${suku.nama} adalah salah satu suku Batak yang memiliki kebudayaan dan tradisi yang kaya. Mari jelajahi berbagai aspek budaya suku ${suku.nama} melalui kategori di bawah ini.',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: isSmallScreen ? 13 : 14,
                                   color: Colors.grey[900],
                                   height: 1.5,
                                 ),
@@ -274,7 +261,7 @@ class SukuScreenState extends State<SukuScreen> {
                         ),
                       ),
 
-                      SizedBox(height: 24.0),
+                      SizedBox(height: isSmallScreen ? 16.0 : 24.0),
 
                       Row(
                         children: [
@@ -286,41 +273,43 @@ class SukuScreenState extends State<SukuScreen> {
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            'KATEGORI BUDAYA',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: Colors.grey[800],
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'KATEGORI BUDAYA',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                                color: Colors.grey[800],
+                              ),
                             ),
                           ),
                         ],
                       ),
 
-                      SizedBox(height: 6.0),
+                      SizedBox(height: isSmallScreen ? 4.0 : 6.0),
                       Text(
                         'Telusuri berbagai aspek budaya suku ${suku.nama}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: isSmallScreen ? 12 : 13,
                           color: Colors.grey[800],
                         ),
                       ),
-                      SizedBox(height: 16.0),
+                      SizedBox(height: isSmallScreen ? 12.0 : 16.0),
                     ],
                   ),
                 ),
               ),
 
               SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12.0 : 16.0),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12.0,
-                    mainAxisSpacing: 12.0,
-                    childAspectRatio: 1.1,
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: isSmallScreen ? 8.0 : 12.0,
+                    mainAxisSpacing: isSmallScreen ? 8.0 : 12.0,
+                    childAspectRatio: isSmallScreen ? 0.95 : 1.1,
                   ),
                   delegate: SliverChildListDelegate([
                     _buildCategoryCard(
@@ -329,6 +318,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Marga',
                       subtitle: 'Sistem kekerabatan',
                       color: Colors.blue,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/marga-detail', arguments: sukuId);
                       },
@@ -339,6 +329,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Pakaian Adat',
                       subtitle: 'Busana tradisional',
                       color: Colors.green,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/pakaian-tradisional-detail', arguments: sukuId);
                       },
@@ -349,6 +340,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Kuliner',
                       subtitle: 'Masakan khas',
                       color: Colors.orange,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/kuliner-tradisional-detail', arguments: sukuId);
                       },
@@ -359,6 +351,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Senjata',
                       subtitle: 'Peralatan perang',
                       color: Colors.red,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/senjata-tradisional-detail', arguments: sukuId);
                       },
@@ -369,6 +362,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Tarian',
                       subtitle: 'Gerakan tradisional',
                       color: Colors.teal,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/tarian-tradisional-detail', arguments: sukuId);
                       },
@@ -379,6 +373,7 @@ class SukuScreenState extends State<SukuScreen> {
                       title: 'Rumah Adat',
                       subtitle: 'Arsitektur tradisional',
                       color: Colors.red,
+                      isSmallScreen: isSmallScreen,
                       onTap: () {
                         Navigator.pushNamed(context, '/rumah-adat-detail', arguments: sukuId);
                       },
@@ -390,7 +385,7 @@ class SukuScreenState extends State<SukuScreen> {
               // Bagian Komentar
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -406,25 +401,25 @@ class SukuScreenState extends State<SukuScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'KOMENTAR',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: Colors.grey[800],
+                          Flexible(
+                            child: Text(
+                              'KOMENTAR',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                                color: Colors.grey[800],
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
 
-                      // Form untuk menambahkan komentar
-                      _buildCommentForm(sukuId, 'suku'), // Pass itemId dan itemType
+                      _buildCommentForm(sukuId, 'suku', isSmallScreen),
 
                       const SizedBox(height: 24),
 
-                      // Daftar Komentar
                       Consumer<KomentarViewModel>(
                         builder: (context, komentarViewModel, child) {
                           if (komentarViewModel.isLoading) {
@@ -450,12 +445,12 @@ class SukuScreenState extends State<SukuScreen> {
                             );
                           }
                           return ListView.builder(
-                            shrinkWrap: true, // Penting agar tidak terjadi error unbounded height
-                            physics: const NeverScrollableScrollPhysics(), // Nonaktifkan scroll di dalam listview ini
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
                             itemCount: komentarViewModel.comments.length,
                             itemBuilder: (context, index) {
                               final komentar = komentarViewModel.comments[index];
-                              return _buildCommentCard(komentar);
+                              return _buildCommentCard(komentar, isSmallScreen);
                             },
                           );
                         },
@@ -464,8 +459,8 @@ class SukuScreenState extends State<SukuScreen> {
                   ),
                 ),
               ),
-              // Bottom padding
-              SliverToBoxAdapter(
+
+              const SliverToBoxAdapter(
                 child: SizedBox(height: 24),
               ),
             ],
@@ -475,62 +470,79 @@ class SukuScreenState extends State<SukuScreen> {
     );
   }
 
-  Widget _buildCommentForm(int itemId, String itemType) {
+  Widget _buildCommentForm(int itemId, String itemType, bool isSmallScreen) {
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Tinggalkan Komentar Anda',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: isSmallScreen ? 14 : 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[800],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isSmallScreen ? 8 : 12),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Nama (opsional)',
                 hintText: 'Misal: Anonim',
+                labelStyle: TextStyle(fontSize: isSmallScreen ? 13 : 14),
+                hintStyle: TextStyle(fontSize: isSmallScreen ? 12 : 13),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 prefixIcon: const Icon(Icons.person_outline),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 8 : 12,
+                  vertical: isSmallScreen ? 10 : 12,
+                ),
               ),
+              style: TextStyle(fontSize: isSmallScreen ? 13 : 14),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isSmallScreen ? 8 : 12),
             TextField(
               controller: _commentController,
               maxLines: 3,
               decoration: InputDecoration(
                 labelText: 'Komentar Anda',
                 hintText: 'Tulis komentar Anda di sini...',
+                labelStyle: TextStyle(fontSize: isSmallScreen ? 13 : 14),
+                hintStyle: TextStyle(fontSize: isSmallScreen ? 12 : 13),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 alignLabelWithHint: true,
+                contentPadding: EdgeInsets.all(isSmallScreen ? 10 : 12),
               ),
+              style: TextStyle(fontSize: isSmallScreen ? 13 : 14),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
                 onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
-                icon: const Icon(Icons.send),
-                label: const Text('Kirim Komentar'),
+                icon: Icon(Icons.send, size: isSmallScreen ? 16 : 18),
+                label: Text(
+                  'Kirim Komentar',
+                  style: TextStyle(fontSize: isSmallScreen ? 13 : 14),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[800],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 16 : 20,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
                 ),
               ),
             ),
@@ -540,33 +552,38 @@ class SukuScreenState extends State<SukuScreen> {
     );
   }
 
-  Widget _buildCommentCard(Komentar komentar) {
+  Widget _buildCommentCard(Komentar komentar, bool isSmallScreen) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       elevation: 1.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                Icon(
+                  Icons.account_circle,
+                  color: Colors.grey,
+                  size: isSmallScreen ? 24 : 28,
+                ),
                 const SizedBox(width: 8),
-                Text(
-                  komentar.namaAnonim,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.grey[900],
+                Expanded(
+                  child: Text(
+                    komentar.namaAnonim,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: isSmallScreen ? 13 : 15,
+                      color: Colors.grey[900],
+                    ),
                   ),
                 ),
-                const Spacer(),
                 Text(
                   _formatDate(komentar.tanggalKomentar),
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 10 : 12,
                     color: Colors.grey,
                   ),
                 ),
@@ -576,7 +593,7 @@ class SukuScreenState extends State<SukuScreen> {
             Text(
               komentar.komentarText,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmallScreen ? 13 : 14,
                 color: Colors.grey[800],
                 height: 1.4,
               ),
@@ -597,6 +614,7 @@ class SukuScreenState extends State<SukuScreen> {
         required String title,
         required String subtitle,
         required Color color,
+        required bool isSmallScreen,
         required VoidCallback onTap,
       }) {
     return Card(
@@ -608,40 +626,44 @@ class SukuScreenState extends State<SukuScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16.0),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(isSmallScreen ? 10.0 : 16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  size: 32.0,
+                  size: isSmallScreen ? 24.0 : 32.0,
                   color: color,
                 ),
               ),
-              SizedBox(height: 12.0),
+              SizedBox(height: isSmallScreen ? 8.0 : 12.0),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16.0,
+                  fontSize: isSmallScreen ? 13.0 : 16.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[800],
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 4.0),
+              SizedBox(height: isSmallScreen ? 2.0 : 4.0),
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 12.0,
+                  fontSize: isSmallScreen ? 10.0 : 12.0,
                   color: Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -665,7 +687,7 @@ class SukuScreenState extends State<SukuScreen> {
               size: 80,
               color: Colors.grey[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               message,
               style: TextStyle(
@@ -673,11 +695,11 @@ class SukuScreenState extends State<SukuScreen> {
                 color: Colors.grey[700],
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[800],
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -685,7 +707,7 @@ class SukuScreenState extends State<SukuScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(
+              child: const Text(
                 'Kembali ke Beranda',
                 style: TextStyle(
                   color: Colors.white,

@@ -1,3 +1,5 @@
+// lib/router/page_router.dart
+
 import 'package:flutter/material.dart';
 import 'package:kbb/screens/home_screen.dart';
 import 'package:kbb/screens/kuliner_tradisional_screen.dart';
@@ -8,12 +10,14 @@ import 'package:kbb/screens/senjata_tradisional_screen.dart';
 import 'package:kbb/screens/splash_screen.dart';
 import 'package:kbb/screens/suku_screen.dart';
 import 'package:kbb/screens/tarian_tradisional_screen.dart';
+import 'package:kbb/screens/add/add_suku_screen.dart';
+import 'package:kbb/screens/add/add_kuliner_tradisional_screen.dart';
 
 class PageRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/kuliner-tradisional-single-detail':
-        return _buildPageRoute(KulinerTradisionalSingleDetailScreen(), settings);
+        return _buildPageRoute(KulinerTradisionalDetailScreen(), settings);
       case '/home':
         return _buildPageRoute(HomeScreen(), settings);
       case '/splash':
@@ -32,6 +36,13 @@ class PageRouter {
         return _buildPageRoute(TarianTradisionalDetailScreen(), settings);
       case '/rumah-adat-detail':
         return _buildPageRoute(RumahAdatDetailScreen(), settings);
+
+    // Routes untuk Add screens
+      case '/add-suku':
+        return _buildPageRoute(AddSukuScreen(), settings);
+      case '/add-kuliner':
+        return _buildPageRoute(AddKulinerTradisionalScreen(), settings);
+
       default:
         return _buildPageRoute(SplashScreen(), settings);
     }

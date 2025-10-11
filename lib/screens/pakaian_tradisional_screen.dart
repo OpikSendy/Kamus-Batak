@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kbb/screens/add/add_pakaian_tradisional_screen.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
@@ -594,9 +595,37 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
           ),
         ],
       ),
+      // TAMBAHKAN FLOATING ACTION BUTTON INI
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final sukuId = ModalRoute.of(context)?.settings.arguments as int?;
+          if (sukuId != null) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddPakaianTradisionalScreen(sukuId: sukuId),
+              ),
+            );
+
+            // Refresh list setelah kembali
+            if (mounted) {
+              Provider.of<PakaianTradisionalViewModel>(context, listen: false)
+                  .fetchPakaianList(sukuId);
+            }
+          }
+        },
+        backgroundColor: Colors.teal[700],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'Tambah Pakaian',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
-
   // Fungsi untuk menampilkan dialog informasi
   void _showInfoDialog(BuildContext context) {
     showDialog(
@@ -681,7 +710,7 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
 
   void _showPakaianDetail(BuildContext context, PakaianTradisional pakaian) {
     // Saat detail pakaian dibuka, muat komentar untuk pakaian ini
-    _komentarViewModel.fetchComments(itemId: pakaian.id, itemType: 'pakaian_tradisional');
+    _komentarViewModel.fetchComments(itemId: pakaian.id!, itemType: 'pakaian_tradisional');
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -901,7 +930,7 @@ class _PakaianTradisionalDetailScreenState extends State<PakaianTradisionalDetai
                       const SizedBox(height: 16),
 
                       // Form untuk menambahkan komentar
-                      _buildCommentForm(pakaian.id, 'pakaian_tradisional'), // ID pakaian dan itemType
+                      _buildCommentForm(pakaian.id!, 'pakaian_tradisional'), // ID pakaian dan itemType
 
                       const SizedBox(height: 24),
 

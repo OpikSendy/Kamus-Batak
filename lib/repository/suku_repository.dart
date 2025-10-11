@@ -1,3 +1,5 @@
+// lib/repository/suku_repository.dart
+
 import '../models/suku.dart';
 import '../service/supabase_service.dart';
 
@@ -5,11 +7,22 @@ class SukuRepository {
   final SupabaseService _supabaseService = SupabaseService();
   final String _tableName = 'suku';
 
-  /// Mengambil semua data suku
+  /// Mengambil semua data suku yang sudah divalidasi (PERBAIKAN)
   Future<List<Suku>> getAllSuku() async {
     try {
-      final data = await _supabaseService.fetchData(_tableName);
-      return data.map((json) => Suku.fromJson(json)).toList();
+      print("Fetching all validated suku...");
+
+      // Gunakan method fetchValidatedData yang baru
+      final data = await _supabaseService.fetchValidatedData(_tableName);
+
+      print("Received ${data.length} suku records");
+
+      final sukuList = data.map((json) {
+        print("Parsing suku: ${json['nama']}");
+        return Suku.fromJson(json);
+      }).toList();
+
+      return sukuList;
     } catch (e) {
       print("Error fetching suku data: $e");
       throw Exception("Failed to load suku list: $e");
@@ -19,11 +32,14 @@ class SukuRepository {
   /// Mengambil suku berdasarkan ID
   Future<Suku?> getSukuById(int id) async {
     try {
-      final data = await _supabaseService.fetchData(_tableName);
-      final filteredData = data.where((json) => json['id'] == id).toList();
+      final data = await _supabaseService.fetchDataWithCondition(
+        _tableName,
+        'id',
+        id,
+      );
 
-      if (filteredData.isNotEmpty) {
-        return Suku.fromJson(filteredData.first);
+      if (data.isNotEmpty) {
+        return Suku.fromJson(data.first);
       }
       return null;
     } catch (e) {
@@ -32,16 +48,42 @@ class SukuRepository {
     }
   }
 
-  /// Menambahkan suku baru
-  Future<void> addSuku(Suku suku) async {
+  /// Menambahkan suku baru oleh user (pending validation)
+  Future<void> addSukuByUser(Suku suku) async {
     try {
-      // Hapus ID dari data yang akan diinsert karena ID akan di-generate otomatis
-      final data = suku.toJson();
-      data.remove('id'); // Remove ID untuk auto-increment
+      final data = {
+        'nama': suku.nama,
+        'foto': suku.foto,
+        'input_source': 'user',
+        'is_validated': false,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      print("Adding suku by user: $data");
+      await _supabaseService.insertData(_tableName, data);
+      print("Suku added successfully");
+    } catch (e) {
+      print("Error adding suku by user: $e");
+      throw Exception("Failed to add suku: $e");
+    }
+  }
+
+  /// Menambahkan suku baru oleh admin (langsung validated)
+  Future<void> addSukuByAdmin(Suku suku) async {
+    try {
+      final data = {
+        'nama': suku.nama,
+        'foto': suku.foto,
+        'input_source': 'admin',
+        'is_validated': true,
+        'validated_at': DateTime.now().toIso8601String(),
+        'validated_by': 'admin',
+        'created_at': DateTime.now().toIso8601String(),
+      };
 
       await _supabaseService.insertData(_tableName, data);
     } catch (e) {
-      print("Error adding suku: $e");
+      print("Error adding suku by admin: $e");
       throw Exception("Failed to add suku: $e");
     }
   }
@@ -49,8 +91,16 @@ class SukuRepository {
   /// Mengupdate data suku
   Future<void> updateSuku(Suku suku) async {
     try {
+      if (suku.id == null) {
+        throw Exception("Suku ID cannot be null for update");
+      }
+
       await _supabaseService.updateData(
-          _tableName, 'id', suku.id.toString(), suku.toJson());
+          _tableName,
+          'id',
+          suku.id!,
+          suku.toJson()
+      );
     } catch (e) {
       print("Error updating suku: $e");
       throw Exception("Failed to update suku: $e");
@@ -58,7 +108,7 @@ class SukuRepository {
   }
 
   /// Menghapus suku
-  Future<void> deleteSuku(String sukuId) async {
+  Future<void> deleteSuku(int sukuId) async {
     try {
       await _supabaseService.deleteData(_tableName, 'id', sukuId);
     } catch (e) {
@@ -78,69 +128,38 @@ class SukuRepository {
   }
 
   /// Update foto suku
-  Future<void> updateFoto(int id, String fotoUrl, int sukuId) async {
+  Future<void> updateFoto(int id, String fotoUrl) async {
     try {
       await _supabaseService.updateFoto(
-          _tableName, 'id', id.toString(), fotoUrl);
-
-      // Jika sukuId berbeda dengan id, update juga
-      if (sukuId != id) {
-        await _supabaseService.updateFoto(
-            _tableName, 'id', sukuId.toString(), fotoUrl);
-      }
+          _tableName,
+          'id',
+          id,
+          fotoUrl
+      );
     } catch (e) {
       print("Error updating foto: $e");
       throw Exception("Failed to update foto: $e");
     }
   }
 
-  /// Mencari suku berdasarkan nama
+  /// Mencari suku berdasarkan nama (hanya yang validated)
   Future<List<Suku>> searchSukuByName(String name) async {
     try {
-      final data = await _supabaseService.fetchData(_tableName);
-      final filteredData = data.where((json) =>
-          json['nama'].toString().toLowerCase().contains(name.toLowerCase())
+      final data = await _supabaseService.searchData(
+        _tableName,
+        'nama',
+        name,
+      );
+
+      // Filter hanya yang sudah validated
+      final validated = data.where((json) =>
+      json['is_validated'] == true
       ).toList();
 
-      return filteredData.map((json) => Suku.fromJson(json)).toList();
+      return validated.map((json) => Suku.fromJson(json)).toList();
     } catch (e) {
       print("Error searching suku: $e");
       throw Exception("Failed to search suku: $e");
-    }
-  }
-
-  /// Mengambil statistik suku
-  Future<Map<String, int>> getSukuStats() async {
-    try {
-      final data = await _supabaseService.fetchData(_tableName);
-      final total = data.length;
-      final withPhoto = data.where((json) =>
-      json['foto'] != null && json['foto']
-          .toString()
-          .isNotEmpty
-      ).length;
-      final withoutPhoto = total - withPhoto;
-
-      return {
-        'total': total,
-        'withPhoto': withPhoto,
-        'withoutPhoto': withoutPhoto,
-      };
-    } catch (e) {
-      print("Error getting suku stats: $e");
-      throw Exception("Failed to get suku statistics: $e");
-    }
-  }
-
-  /// Batch delete multiple suku
-  Future<void> deleteMutipleSuku(List<String> sukuIds) async {
-    try {
-      for (String id in sukuIds) {
-        await _supabaseService.deleteData(_tableName, 'id', id);
-      }
-    } catch (e) {
-      print("Error deleting multiple suku: $e");
-      throw Exception("Failed to delete multiple suku: $e");
     }
   }
 
@@ -158,5 +177,4 @@ class SukuRepository {
       return false;
     }
   }
-
 }
