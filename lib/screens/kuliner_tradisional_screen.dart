@@ -3,9 +3,12 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:kbb/models/kuliner_tradisional.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/kuliner_tradisional_viewmodel.dart';
 import 'add/add_kuliner_tradisional_screen.dart';
+import '../viewmodel/komentar_viewmodel.dart';
+import '../models/komentar.dart';
 
 class KulinerTradisionalDetailScreen extends StatefulWidget {
   const KulinerTradisionalDetailScreen({super.key});
@@ -17,6 +20,12 @@ class KulinerTradisionalDetailScreen extends StatefulWidget {
 class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'Semua';
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
+
+  late KomentarViewModel _komentarViewModel;
+
 
   @override
   void initState() {
@@ -327,23 +336,76 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     Expanded(
-                      child: ListView.builder(
+                      child: SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.only(bottom: 80.0),
-                        itemCount: filteredList.length,
-                        itemBuilder: (context, index) {
-                          final kuliner = filteredList[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/kuliner-tradisional-single-detail',
-                                arguments: kuliner.id,
-                              );
-                            },
-                            child: _buildKulinerCard(context, kuliner),
-                          );
-                        },
+                        child: Column(
+                          children: [
+                            ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: filteredList.length,
+                              itemBuilder: (context, index) {
+                                final kuliner = filteredList[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    _showResep(context, kuliner);
+                                  },
+                                  child: _buildKulinerCard(context, kuliner),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            // Form untuk menambahkan komentar
+                            _buildCommentForm(
+                              sukuId ?? 0,
+                              'kuliner_tradisional',
+                            ),
+                            const SizedBox(height: 24),
+                            // Daftar Komentar
+                            Consumer<KomentarViewModel>(
+                              builder: (context, komentarViewModel, child) {
+                                // Filter komentar untuk senjata tradisional yang sedang dilihat
+                                final currentSenjataId = sukuId ?? 0;
+                                final relevantComments = komentarViewModel.comments
+                                    .where((k) => k.itemId == currentSenjataId && k.itemType == 'senjata_tradisional')
+                                    .toList();
+
+                                if (komentarViewModel.isLoading) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                if (komentarViewModel.errorMessage != null) {
+                                  return Center(
+                                    child: Text(
+                                      'Gagal memuat komentar: ${komentarViewModel.errorMessage}',
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  );
+                                }
+                                if (relevantComments.isEmpty) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: Text(
+                                        'Belum ada komentar yang disetujui untuk senjata tradisional ini.',
+                                        style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: relevantComments.length,
+                                  itemBuilder: (context, index) {
+                                    final komentar = relevantComments[index];
+                                    return _buildCommentCard(komentar);
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -544,11 +606,7 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
                 const SizedBox(height: 16.0),
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/kuliner-tradisional-single-detail',
-                      arguments: kuliner.id,
-                    );
+                    _showResep(context, kuliner);
                   },
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -614,6 +672,81 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
     );
   }
 
+  void _showResep(BuildContext context, KulinerTradisional kuliner) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red[700],
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Resep ${kuliner.nama}",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    kuliner.resep,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[700],
+                      minimumSize: Size(double.infinity, 45),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Tutup",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      )
+                      ,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showFilterDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -668,5 +801,149 @@ class KulinerTradisionalState extends State<KulinerTradisionalDetailScreen> {
         );
       },
     );
+  }
+
+  Widget _buildCommentForm(int itemId, String itemType) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tinggalkan Komentar Anda',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama (opsional)',
+                hintText: 'Misal: Anonim',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Komentar Anda',
+                hintText: 'Tulis komentar Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitComment(itemId: itemId, itemType: itemType),
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Komentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[700], // Warna disesuaikan dengan tema
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget untuk card komentar
+  Widget _buildCommentCard(Komentar komentar) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+                const SizedBox(width: 8),
+                Text(
+                  komentar.namaAnonim,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey[900],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _formatDate(komentar.tanggalKomentar),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              komentar.komentarText,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _submitComment({required int itemId, required String itemType}) async {
+    if (_commentController.text.trim().isEmpty) {
+      _showSnackBar('Komentar tidak boleh kosong!', isError: true);
+      return;
+    }
+
+    final String namaAnonim = _nameController.text.trim().isEmpty ? 'Anonim' : _nameController.text.trim();
+    final String komentarText = _commentController.text.trim();
+
+    try {
+      await _komentarViewModel.addComment(
+        itemId: itemId,
+        itemType: itemType,
+        namaAnonim: namaAnonim,
+        komentarText: komentarText,
+      );
+      _showSnackBar('Komentar berhasil dikirim! Menunggu persetujuan admin.');
+      _commentController.clear();
+      _nameController.clear();
+      // Perbarui daftar komentar untuk item ini setelah komentar berhasil dikirim
+      _komentarViewModel.fetchComments(itemId: itemId, itemType: itemType);
+    } catch (e) {
+      _showSnackBar('Gagal mengirim komentar: ${e.toString()}', isError: true);
+    }
+  }
+
+  // Fungsi format tanggal
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

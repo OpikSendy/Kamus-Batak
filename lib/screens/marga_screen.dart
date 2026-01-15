@@ -103,35 +103,36 @@ class _MargaDetailScreenState extends State<MargaDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Image
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                child: submarga.foto.isNotEmpty
-                    ? Image.network(
-                  submarga.foto,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 200,
-                      color: Colors.grey[300],
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 64,
-                        color: Colors.grey[600],
-                      ),
-                    );
-                  },
-                )
-                    : Container(
-                  height: 200,
-                  color: Colors.grey[300],
-                  child: Icon(
-                    Icons.person,
-                    size: 64,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
+              // ClipRRect(
+              //   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              //   child:
+              //   submarga.foto.isNotEmpty
+              //       ? Image.network(
+              //     submarga.foto,
+              //     height: 200,
+              //     fit: BoxFit.cover,
+              //     errorBuilder: (context, error, stackTrace) {
+              //       return Container(
+              //         height: 200,
+              //         color: Colors.grey[300],
+              //         child: Icon(
+              //           Icons.broken_image,
+              //           size: 64,
+              //           color: Colors.grey[600],
+              //         ),
+              //       );
+              //     },
+              //   )
+              //       : Container(
+              //     height: 200,
+              //     color: Colors.grey[300],
+              //     child: Icon(
+              //       Icons.person,
+              //       size: 64,
+              //       color: Colors.grey[600],
+              //     ),
+              //   ),
+              // ),
 
               // Content
               Padding(

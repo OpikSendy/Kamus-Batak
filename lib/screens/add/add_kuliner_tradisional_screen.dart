@@ -128,7 +128,7 @@ class _AddKulinerTradisionalScreenState extends State<AddKulinerTradisionalScree
       rating: _ratingController.text,
       waktu: _waktuController.text,
       resep: _resepController.text,
-      bucketName: 'kuliner', // Sesuaikan dengan bucket Supabase Anda
+      bucketName: 'kuliner', 
     );
 
     setState(() => _isLoading = false);

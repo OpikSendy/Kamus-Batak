@@ -61,14 +61,10 @@ class KomentarViewModel extends ChangeNotifier {
         isApproved: false,
       );
       await _komentarRepository.submitComment(newComment);
-      // Jika berhasil menambahkan, Anda mungkin ingin melakukan refresh daftar komentar yang disetujui.
-      // Namun, karena komentar baru belum disetujui, ia tidak akan muncul di daftar 'approvedComments'.
-      // Ini adalah perilaku yang diinginkan sesuai deskripsi Anda.
-      // Jika Anda perlu memberi tahu UI bahwa pengiriman berhasil, Anda bisa menambahkan callback atau event.
-    } catch (e) {
+      } catch (e) {
       _errorMessage = e.toString();
       print('Error in KomentarViewModel addComment: $e');
-      rethrow; // Penting untuk rethrow jika Anda ingin UI menampilkan error pop-up atau dialog
+      rethrow; 
     } finally {
       _isLoading = false;
       notifyListeners();

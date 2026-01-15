@@ -380,7 +380,7 @@ class _SenjataTradisionalDetailScreenState
         children: [
           // Large page view for senjata images
           Expanded(
-            flex: 3,
+            flex: 1,
             child: PageView.builder(
               controller: _pageController,
               itemCount: viewModel.senjataList.length,

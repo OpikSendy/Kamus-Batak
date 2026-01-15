@@ -561,12 +561,10 @@ class _TarianTradisionalDetailScreenState extends State<TarianTradisionalDetailS
 
                               // Action row - PERBAIKAN DISINI
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Features row dengan Wrap
                                   Wrap(
                                     spacing: 8,
-                                    runSpacing: 8,
                                     children: [
                                       _buildFeatureChip(Icons.group, tarian.kategori),
                                       _buildFeatureChip(Icons.access_time, tarian.durasi),

@@ -145,7 +145,7 @@ class _AddTarianTradisionalScreenState extends State<AddTarianTradisionalScreen>
       durasi: _durasiController.text,
       event: _eventController.text,
       fotoFile: _selectedImage!,
-      bucketName: 'tarian_tradisional', // Sesuaikan dengan bucket Supabase Anda
+      bucketName: 'tarian', 
     );
 
     setState(() => _isLoading = false);

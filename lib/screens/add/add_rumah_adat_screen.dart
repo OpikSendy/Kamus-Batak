@@ -145,7 +145,7 @@ class _AddRumahAdatScreenState extends State<AddRumahAdatScreen> {
       ornamen: _ornamenController.text,
       fungsi: _fungsiController.text,
       pelestarian: _pelestarianController.text,
-      bucketName: 'rumah_adat',
+      bucketName: 'rumah',
     );
 
     setState(() => _isLoading = false);

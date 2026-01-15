@@ -143,7 +143,7 @@ class _AddSenjataTradisionalScreenState extends State<AddSenjataTradisionalScree
       pertahanan: _pertahananController.text,
       perburuan: _perburuanController.text,
       seremonial: _seremonialController.text,
-      bucketName: 'senjata_tradisional',
+      bucketName: 'senjata',
     );
 
     setState(() => _isLoading = false);

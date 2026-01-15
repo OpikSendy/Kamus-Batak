@@ -16,8 +16,6 @@ import 'package:kbb/screens/add/add_kuliner_tradisional_screen.dart';
 class PageRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case '/kuliner-tradisional-single-detail':
-        return _buildPageRoute(KulinerTradisionalDetailScreen(), settings);
       case '/home':
         return _buildPageRoute(HomeScreen(), settings);
       case '/splash':

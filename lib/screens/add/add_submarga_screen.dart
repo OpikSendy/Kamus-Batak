@@ -116,7 +116,7 @@ class _AddSubmargaScreenState extends State<AddSubmargaScreen> {
       nama: _namaController.text,
       deskripsi: _deskripsiController.text,
       fotoFile: _selectedImage!,
-      bucketName: 'submarga', // Sesuaikan dengan bucket Supabase Anda
+      bucketName: 'submarga', 
     );
 
     setState(() => _isLoading = false);

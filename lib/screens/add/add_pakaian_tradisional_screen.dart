@@ -132,7 +132,7 @@ class _AddPakaianTradisionalScreenState extends State<AddPakaianTradisionalScree
       feature2: _feature2Controller.text,
       feature3: _feature3Controller.text,
       fotoFile: _selectedImage!,
-      bucketName: 'pakaian_tradisional',
+      bucketName: 'pakaian',
     );
 
     setState(() => _isLoading = false);

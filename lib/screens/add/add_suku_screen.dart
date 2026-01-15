@@ -104,7 +104,7 @@ class _AddSukuScreenState extends State<AddSukuScreen> {
     final success = await viewModel.submitSukuByUser(
       nama: _namaController.text,
       fotoFile: _selectedImage!,
-      bucketName: 'suku', // Sesuaikan dengan bucket Supabase Anda
+      bucketName: 'suku', 
     );
 
     setState(() => _isLoading = false);
